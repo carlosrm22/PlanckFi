@@ -13,13 +13,13 @@ export const categories: Category[] = [
 ];
 
 export const transactions: Transaction[] = [
-    { id: '1', date: '2024-07-26', description: 'Supermercado La Compra', category: 'Comestibles', amount: -75.50, type: 'expense' },
-    { id: '2', date: '2024-07-25', description: 'Salario de Julio', category: 'Ingresos', amount: 2500.00, type: 'income' },
-    { id: '3', date: '2024-07-24', description: 'Suscripción a Netflix', category: 'Entretenimiento', amount: -15.99, type: 'expense' },
-    { id: '4', date: '2024-07-23', description: 'Cena en "El Sabor"', category: 'Restaurante', amount: -45.20, type: 'expense' },
-    { id: '5', date: '2024-07-22', description: 'Gasolina para el coche', category: 'Transporte', amount: -50.00, type: 'expense' },
-    { id: '6', date: '2024-07-21', description: 'Entradas de cine', category: 'Entretenimiento', amount: -22.00, type: 'expense' },
-    { id: '7', date: '2024-07-20', description: 'Factura de internet', category: 'Servicios', amount: -60.00, type: 'expense' },
+    { id: '1', date: '2024-07-26T12:00:00Z', description: 'Supermercado La Compra', category: 'Comestibles', amount: -75.50, type: 'expense' },
+    { id: '2', date: '2024-07-25T12:00:00Z', description: 'Salario de Julio', category: 'Ingresos', amount: 2500.00, type: 'income' },
+    { id: '3', date: '2024-07-24T12:00:00Z', description: 'Suscripción a Netflix', category: 'Entretenimiento', amount: -15.99, type: 'expense' },
+    { id: '4', date: '2024-07-23T12:00:00Z', description: 'Cena en "El Sabor"', category: 'Restaurante', amount: -45.20, type: 'expense' },
+    { id: '5', date: '2024-07-22T12:00:00Z', description: 'Gasolina para el coche', category: 'Transporte', amount: -50.00, type: 'expense' },
+    { id: '6', date: '2024-07-21T12:00:00Z', description: 'Entradas de cine', category: 'Entretenimiento', amount: -22.00, type: 'expense' },
+    { id: '7', date: '2024-07-20T12:00:00Z', description: 'Factura de internet', category: 'Servicios', amount: -60.00, type: 'expense' },
 ];
 
 export const accounts: Account[] = [
@@ -36,10 +36,10 @@ export const budgetGoals: BudgetGoal[] = [
 ];
 
 export const upcomingBills: Bill[] = [
-    { name: "Netflix", amount: 15.99, dueDate: "2024-08-25", icon: Clapperboard },
-    { name: "Factura de Electricidad", amount: 75.50, dueDate: "2024-08-28", icon: Receipt },
-    { name: "Alquiler", amount: 1200, dueDate: "2024-09-01", icon: Home },
-    { name: "Seguro de Auto", amount: 120.00, dueDate: "2024-09-05", icon: Car },
+    { name: "Netflix", amount: 15.99, dueDate: "2024-08-25T12:00:00Z", icon: Clapperboard },
+    { name: "Factura de Electricidad", amount: 75.50, dueDate: "2024-08-28T12:00:00Z", icon: Receipt },
+    { name: "Alquiler", amount: 1200, dueDate: "2024-09-01T12:00:00Z", icon: Home },
+    { name: "Seguro de Auto", amount: 120.00, dueDate: "2024-09-05T12:00:00Z", icon: Car },
 ]
 
 export const spendingData = [
