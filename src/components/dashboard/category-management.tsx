@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -30,8 +31,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Plus } from "lucide-react";
-import { useCategories } from "@/context/categories-context";
+import { Pencil, Plus } from "lucide-react";
+import { useAppData } from "@/context/app-data-context";
+import type { Category } from "@/lib/types";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -40,19 +42,40 @@ const formSchema = z.object({
 });
 
 export function CategoryManagement() {
-  const { categories, addCategory } = useCategories();
-  const [open, setOpen] = useState(false);
+  const { categories, addCategory, editCategory } = useAppData();
+  const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const addForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: "" },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const editForm = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
+
+  function onAddSubmit(values: z.infer<typeof formSchema>) {
     addCategory(values.name);
-    setOpen(false);
-    form.reset();
+    setAddOpen(false);
+    addForm.reset();
   }
+
+  function onEditSubmit(values: z.infer<typeof formSchema>) {
+    if (currentCategory) {
+      editCategory(currentCategory.name, values.name);
+      setEditOpen(false);
+      setCurrentCategory(null);
+      editForm.reset();
+    }
+  }
+
+  const handleEditClick = (category: Category) => {
+    setCurrentCategory(category);
+    editForm.setValue("name", category.name);
+    setEditOpen(true);
+  };
 
   return (
     <Card>
@@ -64,15 +87,23 @@ export function CategoryManagement() {
         {categories.map((category) => (
           <div
             key={category.name}
-            className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg bg-card"
+            className="relative group flex flex-col items-center justify-center gap-2 p-4 border rounded-lg bg-card"
           >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => handleEditClick(category)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
             <category.icon className={`h-6 w-6 ${category.color}`} />
             <span className="text-sm font-medium text-center truncate w-full">
               {category.name}
             </span>
           </div>
         ))}
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
             <button className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg hover:bg-accent hover:border-solid transition-colors">
               <Plus className="h-6 w-6 text-muted-foreground" />
@@ -88,13 +119,13 @@ export function CategoryManagement() {
                 Crea una nueva categoría para seguir tus gastos.
               </DialogDescription>
             </DialogHeader>
-            <Form {...form}>
+            <Form {...addForm}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={addForm.handleSubmit(onAddSubmit)}
                 className="space-y-4 pt-4"
               >
                 <FormField
-                  control={form.control}
+                  control={addForm.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
@@ -114,6 +145,39 @@ export function CategoryManagement() {
           </DialogContent>
         </Dialog>
       </CardContent>
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Categoría</DialogTitle>
+            <DialogDescription>
+              Cambia el nombre de tu categoría.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form
+              onSubmit={editForm.handleSubmit(onEditSubmit)}
+              className="space-y-4 pt-4"
+            >
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nuevo Nombre de la Categoría</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej. Compras" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit">Guardar Cambios</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

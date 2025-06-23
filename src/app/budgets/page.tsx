@@ -34,10 +34,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { budgetGoals as initialBudgetGoals } from "@/lib/data";
-import type { BudgetGoal } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
-import { useCategories } from "@/context/categories-context";
+import { useAppData } from "@/context/app-data-context";
 
 const formSchema = z.object({
   category: z.string({ required_error: "Por favor, selecciona una categoría." }),
@@ -48,8 +46,7 @@ const formSchema = z.object({
 
 export default function BudgetsPage() {
   const [open, setOpen] = useState(false);
-  const [budgets, setBudgets] = useState<BudgetGoal[]>(initialBudgetGoals);
-  const { categories } = useCategories();
+  const { categories, addBudget } = useAppData();
   
   const budgetCategories = categories.filter(
     (c) => c.name !== "Ingresos"
@@ -66,15 +63,12 @@ export default function BudgetsPage() {
     const categoryInfo = categories.find((c) => c.name === values.category);
     if (!categoryInfo) return;
 
-    const newBudget: BudgetGoal = {
+    addBudget({
       category: values.category,
       icon: categoryInfo.icon,
       budgeted: values.amount,
-      spent: 0,
-      color: `var(--chart-${(budgets.length % 5) + 1})`,
-    };
+    });
 
-    setBudgets((prev) => [...prev, newBudget]);
     setOpen(false);
     form.reset();
   }
@@ -169,7 +163,7 @@ export default function BudgetsPage() {
             </DialogContent>
           </Dialog>
         </div>
-        <BudgetGoals budgets={budgets} />
+        <BudgetGoals />
       </div>
     </AppShell>
   );

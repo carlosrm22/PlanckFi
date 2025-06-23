@@ -1,11 +1,14 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { budgetGoals as staticBudgetGoals } from "@/lib/data";
 import type { BudgetGoal } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useAppData } from "@/context/app-data-context";
 
-export function BudgetGoals({ budgets }: { budgets?: BudgetGoal[] }) {
-  const goalsToDisplay = budgets || staticBudgetGoals;
+export function BudgetGoals() {
+  const { budgets } = useAppData();
+  const goalsToDisplay = budgets;
   
   if (goalsToDisplay.length === 0) {
     return (
