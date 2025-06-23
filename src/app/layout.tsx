@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'BudgetFlow',
-  description: 'Una aplicación de presupuesto personal y seguimiento de gastos.',
+  title: 'PlanckFi',
+  description: 'Tu asistente financiero personal impulsado por IA.',
 };
 
 export default function RootLayout({
