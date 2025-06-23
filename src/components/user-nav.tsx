@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,7 +20,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="https://placehold.co/100x100" alt="@usuario" />
+            <AvatarImage src="[IMAGE_0]" alt="Bulldog de perfil" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
         </Button>
