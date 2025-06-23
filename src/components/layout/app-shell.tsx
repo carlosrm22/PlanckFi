@@ -21,6 +21,7 @@ import {
   Goal,
   Settings,
   Search,
+  Tag,
 } from "lucide-react";
 import { Logo } from "@/components/icons";
 import { UserNav } from "@/components/user-nav";
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/transactions", label: "Transacciones", icon: ArrowRightLeft },
   { href: "/accounts", label: "Cuentas", icon: Wallet },
   { href: "/budgets", label: "Presupuestos", icon: Goal },
+  { href: "/categories", label: "Categorías", icon: Tag },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
