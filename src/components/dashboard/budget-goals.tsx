@@ -7,8 +7,8 @@ export function BudgetGoals() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Budget Goals</CardTitle>
-        <CardDescription>Your monthly spending goals.</CardDescription>
+        <CardTitle>Metas de Presupuesto</CardTitle>
+        <CardDescription>Tus metas de gasto mensuales.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {budgetGoals.map((goal) => {

@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { upcomingBills } from "@/lib/data";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 
 export function UpcomingBills() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Upcoming Bills</CardTitle>
-        <CardDescription>Don't miss these payment deadlines.</CardDescription>
+        <CardTitle>Próximas Facturas</CardTitle>
+        <CardDescription>No te pierdas estas fechas de pago.</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="space-y-4">
@@ -21,13 +22,13 @@ export function UpcomingBills() {
                 <div>
                   <p className="font-medium">{bill.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    Due {format(new Date(bill.dueDate), "MMM dd, yyyy")}
+                    Vence el {format(new Date(bill.dueDate), "dd MMM, yyyy", { locale: es })}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="font-semibold">${bill.amount.toFixed(2)}</p>
-                <Button variant="link" size="sm" className="h-auto p-0 text-primary">Pay Now</Button>
+                <Button variant="link" size="sm" className="h-auto p-0 text-primary">Pagar Ahora</Button>
               </div>
             </li>
           ))}

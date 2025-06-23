@@ -11,12 +11,12 @@ export function CategoryManagement() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Categories</CardTitle>
-        <CardDescription>Manage your spending categories.</CardDescription>
+        <CardTitle>Categorías</CardTitle>
+        <CardDescription>Gestiona tus categorías de gastos.</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {categories.map((category) => (
-          category.name === "Add New" ? (
+          category.name === "Añadir Nuevo" ? (
              <Dialog key={category.name}>
               <DialogTrigger asChild>
                 <button className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg hover:bg-accent hover:border-solid transition-colors">
@@ -26,21 +26,21 @@ export function CategoryManagement() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Add New Category</DialogTitle>
+                  <DialogTitle>Añadir Nueva Categoría</DialogTitle>
                   <DialogDescription>
-                    Create a new category to track your expenses.
+                    Crea una nueva categoría para seguir tus gastos.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">
-                      Name
+                      Nombre
                     </Label>
-                    <Input id="name" defaultValue="New Category" className="col-span-3" />
+                    <Input id="name" defaultValue="Nueva Categoría" className="col-span-3" />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Save category</Button>
+                  <Button type="submit">Guardar categoría</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

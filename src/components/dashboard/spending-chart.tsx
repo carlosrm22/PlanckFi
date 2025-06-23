@@ -20,26 +20,26 @@ import { spendingData } from "@/lib/data"
 
 const chartConfig = {
   value: {
-    label: "Value",
+    label: "Valor",
   },
   groceries: {
-    label: "Groceries",
+    label: "Comestibles",
     color: "hsl(var(--chart-1))",
   },
   rent: {
-    label: "Rent",
+    label: "Alquiler",
     color: "hsl(var(--chart-2))",
   },
   entertainment: {
-    label: "Entertainment",
+    label: "Entretenimiento",
     color: "hsl(var(--chart-3))",
   },
   transport: {
-    label: "Transport",
+    label: "Transporte",
     color: "hsl(var(--chart-4))",
   },
   health: {
-    label: "Health",
+    label: "Salud",
     color: "hsl(var(--chart-5))",
   },
 } satisfies ChartConfig
@@ -52,8 +52,8 @@ export function SpendingChart() {
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Spending by Category</CardTitle>
-        <CardDescription>July 2024</CardDescription>
+        <CardTitle>Gastos por Categoría</CardTitle>
+        <CardDescription>Julio 2024</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -81,7 +81,7 @@ export function SpendingChart() {
       </CardContent>
        <CardContent className="mt-4 flex flex-col gap-2 text-sm">
         <div className="flex items-center justify-center text-center font-medium leading-none">
-          Total Spent: ${totalValue.toFixed(2)}
+          Gasto Total: ${totalValue.toFixed(2)}
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 p-4">
           {spendingData.map((item) => (

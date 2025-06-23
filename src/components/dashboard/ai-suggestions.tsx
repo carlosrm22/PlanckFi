@@ -17,15 +17,14 @@ export function AISuggestions() {
     setError(null);
     setSuggestions(null);
     
-    // Mock spending data and financial goals for the AI
     const mockSpendingData = `
-      - Groceries: $450/month
-      - Rent: $1200/month
-      - Entertainment (Netflix, movies): $220/month
-      - Transport (Gas, public transit): $135/month
-      - Health (Gym, supplements): $75/month
+      - Comestibles: $450/mes
+      - Alquiler: $1200/mes
+      - Entretenimiento (Netflix, cine): $220/mes
+      - Transporte (Gasolina, transporte público): $135/mes
+      - Salud (Gimnasio, suplementos): $75/mes
     `;
-    const mockFinancialGoals = "Save for a down payment on a house within 2 years.";
+    const mockFinancialGoals = "Ahorrar para el pago inicial de una casa en 2 años.";
 
     try {
       const result = await getSavingsSuggestions({
@@ -34,7 +33,7 @@ export function AISuggestions() {
       });
       setSuggestions(result.suggestions);
     } catch (e) {
-      setError("Failed to get suggestions. Please try again.");
+      setError("No se pudieron obtener las sugerencias. Por favor, inténtalo de nuevo.");
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -46,9 +45,9 @@ export function AISuggestions() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-yellow-400" />
-          AI Savings Advisor
+          Asesor de Ahorros con IA
         </CardTitle>
-        <CardDescription>Get personalized tips to reach your financial goals faster.</CardDescription>
+        <CardDescription>Obtén consejos personalizados para alcanzar tus metas financieras más rápido.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (
@@ -58,7 +57,7 @@ export function AISuggestions() {
         ) : (
           !suggestions && (
             <div className="text-center text-sm text-muted-foreground p-4 bg-secondary rounded-lg">
-                Click the button to get AI-powered savings suggestions based on your spending habits.
+                Haz clic en el botón para obtener sugerencias de ahorro personalizadas por IA basadas en tus hábitos de gasto.
             </div>
           )
         )}
@@ -72,14 +71,14 @@ export function AISuggestions() {
 
         {suggestions && (
           <Alert>
-            <AlertTitle>Your Savings Plan</AlertTitle>
+            <AlertTitle>Tu Plan de Ahorro</AlertTitle>
             <AlertDescription className="whitespace-pre-wrap">
               {suggestions}
             </AlertDescription>
           </Alert>
         )}
         <Button onClick={handleGetSuggestions} disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-          {isLoading ? "Analyzing..." : "Get Savings Tips"}
+          {isLoading ? "Analizando..." : "Obtener Consejos de Ahorro"}
         </Button>
       </CardContent>
     </Card>

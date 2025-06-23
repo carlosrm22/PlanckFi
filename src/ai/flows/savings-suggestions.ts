@@ -1,11 +1,11 @@
 'use server';
 
 /**
- * @fileOverview Provides AI-powered savings suggestions based on user spending habits.
+ * @fileOverview Proporciona sugerencias de ahorro impulsadas por IA basadas en los hábitos de gasto del usuario.
  *
- * - getSavingsSuggestions - A function that takes spending data and returns savings suggestions.
- * - SavingsSuggestionsInput - The input type for the getSavingsSuggestions function.
- * - SavingsSuggestionsOutput - The return type for the getSavingsSuggestions function.
+ * - getSavingsSuggestions - Una función que toma datos de gastos y devuelve sugerencias de ahorro.
+ * - SavingsSuggestionsInput - El tipo de entrada para la función getSavingsSuggestions.
+ * - SavingsSuggestionsOutput - El tipo de retorno para la función getSavingsSuggestions.
  */
 
 import {ai} from '@/ai/genkit';
@@ -15,18 +15,18 @@ const SavingsSuggestionsInputSchema = z.object({
   spendingData: z
     .string()
     .describe(
-      'A detailed breakdown of the user spending habits, including categories and amounts.'
+      'Un desglose detallado de los hábitos de gasto del usuario, incluyendo categorías y montos.'
     ),
   financialGoals: z
     .string()
-    .describe('The financial goals of the user, such as saving for a house or paying off debt.'),
+    .describe('Los objetivos financieros del usuario, como ahorrar para una casa o pagar deudas.'),
 });
 export type SavingsSuggestionsInput = z.infer<typeof SavingsSuggestionsInputSchema>;
 
 const SavingsSuggestionsOutputSchema = z.object({
   suggestions: z
     .string()
-    .describe('AI-powered suggestions on how to save money based on spending habits.'),
+    .describe('Sugerencias impulsadas por IA sobre cómo ahorrar dinero basadas en los hábitos de gasto.'),
 });
 export type SavingsSuggestionsOutput = z.infer<typeof SavingsSuggestionsOutputSchema>;
 
@@ -40,14 +40,14 @@ const prompt = ai.definePrompt({
   name: 'savingsSuggestionsPrompt',
   input: {schema: SavingsSuggestionsInputSchema},
   output: {schema: SavingsSuggestionsOutputSchema},
-  prompt: `You are a personal finance advisor providing savings suggestions to users.
+  prompt: `Eres un asesor financiero personal que proporciona sugerencias de ahorro a los usuarios.
 
-  Based on the user's spending data and financial goals, provide personalized and actionable savings suggestions.
+  Basándote en los datos de gastos y los objetivos financieros del usuario, proporciona sugerencias de ahorro personalizadas y prácticas.
 
-  Spending Data: {{{spendingData}}}
-  Financial Goals: {{{financialGoals}}}
+  Datos de Gastos: {{{spendingData}}}
+  Objetivos Financieros: {{{financialGoals}}}
 
-  Provide suggestions on how the user can reduce expenses and achieve their financial goals faster.
+  Proporciona sugerencias sobre cómo el usuario puede reducir gastos y alcanzar sus objetivos financieros más rápido.
 `,
 });
 

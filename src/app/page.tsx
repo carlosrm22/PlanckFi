@@ -41,27 +41,27 @@ export default function Home() {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Dashboard" isActive>
+              <SidebarMenuButton tooltip="Panel" isActive>
                 <LayoutDashboard />
-                <span>Dashboard</span>
+                <span>Panel</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Transactions">
+              <SidebarMenuButton tooltip="Transacciones">
                 <ArrowRightLeft />
-                <span>Transactions</span>
+                <span>Transacciones</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Accounts">
+              <SidebarMenuButton tooltip="Cuentas">
                 <Wallet />
-                <span>Accounts</span>
+                <span>Cuentas</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Budgets">
+              <SidebarMenuButton tooltip="Presupuestos">
                 <Goal />
-                <span>Budgets</span>
+                <span>Presupuestos</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -69,9 +69,9 @@ export default function Home() {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Settings">
+              <SidebarMenuButton tooltip="Configuración">
                 <Settings />
-                <span>Settings</span>
+                <span>Configuración</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -86,7 +86,7 @@ export default function Home() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search transactions..."
+                  placeholder="Buscar transacciones..."
                   className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
                 />
               </div>
