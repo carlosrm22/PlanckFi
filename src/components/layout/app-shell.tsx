@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -22,6 +23,7 @@ import {
   Settings,
   Search,
   Tag,
+  ScanLine,
 } from "lucide-react";
 import { Logo } from "@/components/icons";
 import { UserNav } from "@/components/user-nav";
@@ -33,6 +35,7 @@ const navItems = [
   { href: "/accounts", label: "Cuentas", icon: Wallet },
   { href: "/budgets", label: "Presupuestos", icon: Goal },
   { href: "/categories", label: "Categorías", icon: Tag },
+  { href: "/scan-receipt", label: "Escanear Recibo", icon: ScanLine },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -51,16 +54,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  tooltip={item.label}
-                  isActive={pathname === item.href}
-                >
-                  <Link href={item.href}>
+                <Link href={item.href} legacyBehavior passHref>
+                  <SidebarMenuButton
+                    as="a"
+                    tooltip={item.label}
+                    isActive={pathname === item.href}
+                  >
                     <item.icon />
                     <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
+                  </SidebarMenuButton>
+                </Link>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -68,16 +71,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                tooltip="Configuración"
-                isActive={pathname === "/settings"}
-              >
-                <Link href="/settings">
+              <Link href="/settings" legacyBehavior passHref>
+                <SidebarMenuButton
+                  as="a"
+                  tooltip="Configuración"
+                  isActive={pathname === "/settings"}
+                >
                   <Settings />
                   <span>Configuración</span>
-                </Link>
-              </SidebarMenuButton>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

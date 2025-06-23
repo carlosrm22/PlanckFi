@@ -13,6 +13,7 @@ export interface Transaction {
   amount: number;
   category: string;
   type: 'income' | 'expense';
+  receiptImageUrl?: string;
 }
 
 export interface BudgetGoal {

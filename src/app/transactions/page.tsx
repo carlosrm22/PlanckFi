@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle } from 'lucide-react';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -55,8 +55,26 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { cn } from '@/lib/utils';
 import { useAppData } from '@/context/app-data-context';
+import type { Transaction } from '@/lib/types';
+
 
 const transactionFormSchema = z.object({
   description: z
@@ -73,16 +91,35 @@ const transactionFormSchema = z.object({
 });
 
 export default function TransactionsPage() {
-  const [open, setOpen] = useState(false);
-  const { transactions, categories, addTransaction } = useAppData();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+
+  const { transactions, categories, addTransaction, editTransaction, deleteTransaction } = useAppData();
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
-    defaultValues: {
-      type: 'expense',
-      date: new Date(),
-    },
   });
+
+  useEffect(() => {
+    if (editingTransaction) {
+      form.reset({
+        ...editingTransaction,
+        amount: Math.abs(editingTransaction.amount),
+        date: new Date(editingTransaction.date),
+      });
+    } else {
+        form.reset({
+            description: '',
+            amount: undefined,
+            date: new Date(),
+            type: 'expense',
+            category: '',
+        });
+    }
+  }, [editingTransaction, form]);
+
 
   const transactionType = form.watch('type');
   const expenseCategories = categories.filter((c) => c.name !== 'Ingresos');
@@ -101,8 +138,7 @@ export default function TransactionsPage() {
 
   function onSubmit(values: z.infer<typeof transactionFormSchema>) {
     const finalCategory = values.type === 'income' && incomeCategory ? incomeCategory.name : values.category;
-    
-    addTransaction({
+    const transactionData = {
       description: values.description,
       amount:
         values.type === 'income'
@@ -111,17 +147,37 @@ export default function TransactionsPage() {
       date: values.date.toISOString(),
       category: finalCategory,
       type: values.type,
-    });
-    setOpen(false);
-    form.reset({
-      description: '',
-      amount: undefined,
-      date: new Date(),
-      type: 'expense',
-      category: '',
-    });
+    };
+
+    if (editingTransaction) {
+        editTransaction(editingTransaction.id, transactionData);
+    } else {
+        addTransaction(transactionData);
+    }
+    
+    setDialogOpen(false);
+    setEditingTransaction(null);
   }
   
+  const openEditDialog = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setDialogOpen(true);
+  }
+
+  const openDeleteDialog = (id: string) => {
+    setTransactionToDelete(id);
+    setDeleteConfirmOpen(true);
+  }
+
+  const handleDelete = () => {
+    if(transactionToDelete) {
+        deleteTransaction(transactionToDelete);
+        setDeleteConfirmOpen(false);
+        setTransactionToDelete(null);
+    }
+  }
+
+
   return (
     <AppShell>
       <Card>
@@ -133,7 +189,7 @@ export default function TransactionsPage() {
                 Una lista de tus transacciones recientes.
               </CardDescription>
             </div>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) setEditingTransaction(null); }}>
               <DialogTrigger asChild>
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -142,9 +198,9 @@ export default function TransactionsPage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Añadir Nueva Transacción</DialogTitle>
+                  <DialogTitle>{editingTransaction ? "Editar Transacción" : "Añadir Nueva Transacción"}</DialogTitle>
                   <DialogDescription>
-                    Registra un nuevo ingreso o gasto.
+                    {editingTransaction ? "Actualiza los detalles de tu transacción." : "Registra un nuevo ingreso o gasto."}
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -163,6 +219,7 @@ export default function TransactionsPage() {
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                               className="flex space-x-4"
+                              disabled={!!editingTransaction}
                             >
                               <FormItem className="flex items-center space-x-2 space-y-0">
                                 <FormControl>
@@ -309,7 +366,7 @@ export default function TransactionsPage() {
                     />
 
                     <DialogFooter>
-                      <Button type="submit">Guardar Transacción</Button>
+                      <Button type="submit">{editingTransaction ? "Guardar Cambios" : "Guardar Transacción"}</Button>
                     </DialogFooter>
                   </form>
                 </Form>
@@ -325,6 +382,7 @@ export default function TransactionsPage() {
                 <TableHead>Descripción</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead className="text-right">Monto</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -355,12 +413,46 @@ export default function TransactionsPage() {
                       currency: 'USD',
                     }).format(transaction.amount)}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Abrir menú</span>
+                                <MoreHorizontal className="h-4 w-4"/>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditDialog(transaction)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openDeleteDialog(transaction.id)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      Esta acción no se puede deshacer. Esto eliminará permanentemente la transacción.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

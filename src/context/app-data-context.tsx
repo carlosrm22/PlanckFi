@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -19,6 +20,8 @@ interface AppDataContextType {
   addBudget: (budget: Omit<BudgetGoal, 'spent' | 'color'>) => void;
   transactions: Transaction[];
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  editTransaction: (id: string, updatedTransaction: Omit<Transaction, 'id'>) => void;
+  deleteTransaction: (id: string) => void;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -100,6 +103,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const editTransaction = (id: string, updatedTransaction: Omit<Transaction, 'id'>) => {
+    setTransactions(prev => prev.map(t => t.id === id ? { id, ...updatedTransaction } : t)
+    .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    toast({
+      title: 'Éxito',
+      description: 'Transacción actualizada correctamente.',
+    });
+  };
+
+  const deleteTransaction = (id: string) => {
+    setTransactions(prev => prev.filter(t => t.id !== id));
+    toast({
+      title: 'Éxito',
+      description: 'Transacción eliminada correctamente.',
+    });
+  };
+
   const value = {
     categories,
     addCategory,
@@ -108,6 +128,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     addBudget,
     transactions,
     addTransaction,
+    editTransaction,
+    deleteTransaction,
   };
 
   return (
