@@ -12,6 +12,7 @@ export interface Transaction {
   description: string;
   amount: number;
   category: string;
+  type: 'income' | 'expense';
 }
 
 export interface BudgetGoal {

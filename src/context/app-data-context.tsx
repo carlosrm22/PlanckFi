@@ -2,10 +2,11 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
-import type { Category, BudgetGoal } from '@/lib/types';
+import type { Category, BudgetGoal, Transaction } from '@/lib/types';
 import {
   categories as initialCategories,
   budgetGoals as initialBudgetGoals,
+  transactions as initialTransactions,
 } from '@/lib/data';
 import { Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +17,8 @@ interface AppDataContextType {
   editCategory: (oldName: string, newName: string) => void;
   budgets: BudgetGoal[];
   addBudget: (budget: Omit<BudgetGoal, 'spent' | 'color'>) => void;
+  transactions: Transaction[];
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -23,6 +26,8 @@ const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [budgets, setBudgets] = useState<BudgetGoal[]>(initialBudgetGoals);
+  const [transactions, setTransactions] =
+    useState<Transaction[]>(initialTransactions);
   const { toast } = useToast();
 
   const addCategory = (name: string) => {
@@ -69,9 +74,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       )
     );
     toast({
-        title: 'Éxito',
-        description: 'Categoría actualizada correctamente.',
-    })
+      title: 'Éxito',
+      description: 'Categoría actualizada correctamente.',
+    });
   };
 
   const addBudget = (budget: Omit<BudgetGoal, 'spent' | 'color'>) => {
@@ -83,7 +88,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setBudgets((prev) => [...prev, newBudget]);
   };
 
-  const value = { categories, addCategory, editCategory, budgets, addBudget };
+  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+    const newTransaction: Transaction = {
+      ...transaction,
+      id: new Date().getTime().toString(),
+    };
+    setTransactions((prev) => [newTransaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    toast({
+      title: 'Éxito',
+      description: 'Transacción añadida correctamente.',
+    });
+  };
+
+  const value = {
+    categories,
+    addCategory,
+    editCategory,
+    budgets,
+    addBudget,
+    transactions,
+    addTransaction,
+  };
 
   return (
     <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
