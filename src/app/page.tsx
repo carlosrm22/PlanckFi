@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import { OverviewCards } from "@/components/dashboard/overview-cards";
 import { SpendingChart } from "@/components/dashboard/spending-chart";
 import { BudgetGoals } from "@/components/dashboard/budget-goals";
@@ -10,6 +11,7 @@ export default function Home() {
   return (
     <AppShell>
       <div className="grid gap-6">
+        <WelcomeBanner />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <OverviewCards />
         </div>
