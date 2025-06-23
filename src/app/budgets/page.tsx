@@ -2,6 +2,10 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
 import { AppShell } from "@/components/layout/app-shell";
 import { BudgetGoals } from "@/components/dashboard/budget-goals";
 import { Button } from "@/components/ui/button";
@@ -15,7 +19,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -23,14 +26,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { categories } from "@/lib/data";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { categories, budgetGoals as initialBudgetGoals } from "@/lib/data";
+import type { BudgetGoal } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
+
+const formSchema = z.object({
+  category: z.string({ required_error: "Por favor, selecciona una categoría." }),
+  amount: z.coerce
+    .number({ required_error: "El monto es obligatorio." })
+    .positive({ message: "El monto debe ser mayor que 0." }),
+});
 
 export default function BudgetsPage() {
   const [open, setOpen] = useState(false);
+  const [budgets, setBudgets] = useState<BudgetGoal[]>(initialBudgetGoals);
+  
   const budgetCategories = categories.filter(
     (c) => c.name !== "Ingresos" && c.name !== "Añadir Nuevo"
   );
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: 0,
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    const categoryInfo = categories.find((c) => c.name === values.category);
+    if (!categoryInfo) return;
+
+    const newBudget: BudgetGoal = {
+      category: values.category,
+      icon: categoryInfo.icon,
+      budgeted: values.amount,
+      spent: 0,
+      color: `var(--chart-${(budgets.length % 5) + 1})`,
+    };
+
+    setBudgets((prev) => [...prev, newBudget]);
+    setOpen(false);
+    form.reset();
+  }
 
   return (
     <AppShell>
@@ -56,50 +101,75 @@ export default function BudgetsPage() {
                   Establece una nueva meta de gasto para una categoría.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="category" className="text-right">
-                    Categoría
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecciona una categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {budgetCategories.map((category) => (
-                        <SelectItem key={category.name} value={category.name}>
-                          <div className="flex items-center gap-2">
-                            <category.icon className="h-4 w-4" />
-                            {category.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="amount" className="text-right">
-                    Monto
-                  </Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="$500"
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit" onClick={() => setOpen(false)}>
-                  Guardar Presupuesto
-                </Button>
-              </DialogFooter>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-8"
+                >
+                  <div className="grid gap-4 py-4">
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-4 items-center gap-4">
+                          <FormLabel className="text-right">Categoría</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Selecciona una categoría" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {budgetCategories.map((category) => (
+                                <SelectItem
+                                  key={category.name}
+                                  value={category.name}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <category.icon className="h-4 w-4" />
+                                    {category.name}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage className="col-span-4" />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-4 items-center gap-4">
+                          <FormLabel className="text-right">Monto</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="$500"
+                              className="col-span-3"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage className="col-span-4" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit">Guardar Presupuesto</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
-        {/* En el futuro podemos iterar sobre datos de presupuestos reales aquí */}
-        <BudgetGoals />
+        <BudgetGoals budgets={budgets} />
       </div>
     </AppShell>
   );
 }
+

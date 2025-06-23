@@ -1,9 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { budgetGoals } from "@/lib/data";
+import { budgetGoals as staticBudgetGoals } from "@/lib/data";
+import type { BudgetGoal } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export function BudgetGoals() {
+export function BudgetGoals({ budgets }: { budgets?: BudgetGoal[] }) {
+  const goalsToDisplay = budgets || staticBudgetGoals;
+  
+  if (goalsToDisplay.length === 0) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Metas de Presupuesto</CardTitle>
+                <CardDescription>Tus metas de gasto mensuales.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="text-center text-muted-foreground p-8">
+                    <p>No has creado ningún presupuesto todavía.</p>
+                    <p>¡Crea uno para empezar a seguir tus gastos!</p>
+                </div>
+            </CardContent>
+        </Card>
+    )
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -11,7 +31,7 @@ export function BudgetGoals() {
         <CardDescription>Tus metas de gasto mensuales.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {budgetGoals.map((goal) => {
+        {goalsToDisplay.map((goal) => {
           const percentage = Math.min((goal.spent / goal.budgeted) * 100, 100);
           const isOverBudget = goal.spent > goal.budgeted;
 
