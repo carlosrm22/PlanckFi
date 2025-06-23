@@ -2,12 +2,14 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useContext, useState } from 'react';
-import type { Category, BudgetGoal, Transaction } from '@/lib/types';
+import { createContext, useContext, useState, useMemo } from 'react';
+import { format } from 'date-fns';
+import type { Category, BudgetGoal, Transaction, Account } from '@/lib/types';
 import {
   categories as initialCategories,
   budgetGoals as initialBudgetGoals,
   transactions as initialTransactions,
+  accounts as initialAccounts,
 } from '@/lib/data';
 import { Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +24,10 @@ interface AppDataContextType {
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   editTransaction: (id: string, updatedTransaction: Omit<Transaction, 'id'>) => void;
   deleteTransaction: (id: string) => void;
+  accounts: Account[];
+  addAccount: (account: Omit<Account, 'id'>) => void;
+  editAccount: (id: string, updatedAccount: Omit<Account, 'id'>) => void;
+  deleteAccount: (id: string) => void;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -31,7 +37,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [budgets, setBudgets] = useState<BudgetGoal[]>(initialBudgetGoals);
   const [transactions, setTransactions] =
     useState<Transaction[]>(initialTransactions);
+  const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
   const { toast } = useToast();
+
+  const processedBudgets = useMemo(() => {
+    return budgets.map(budget => {
+      const currentMonth = format(new Date(), 'yyyy-MM');
+      const spent = transactions
+        .filter(t => 
+          t.category === budget.category && 
+          t.type === 'expense' &&
+          format(new Date(t.date), 'yyyy-MM') === currentMonth
+        )
+        .reduce((acc, t) => acc + Math.abs(t.amount), 0);
+      
+      return { ...budget, spent };
+    });
+  }, [budgets, transactions]);
+
 
   const addCategory = (name: string) => {
     if (categories.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
@@ -83,6 +106,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   };
 
   const addBudget = (budget: Omit<BudgetGoal, 'spent' | 'color'>) => {
+     if (budgets.some(b => b.category === budget.category)) {
+       toast({
+        title: 'Error',
+        description: 'Ya existe un presupuesto para esta categoría.',
+        variant: 'destructive',
+      });
+      return;
+    }
     const newBudget: BudgetGoal = {
       ...budget,
       spent: 0,
@@ -120,16 +151,48 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addAccount = (account: Omit<Account, 'id'>) => {
+    const newAccount: Account = {
+      ...account,
+      id: new Date().getTime().toString(),
+    };
+    setAccounts(prev => [...prev, newAccount]);
+    toast({
+      title: 'Éxito',
+      description: 'Cuenta añadida correctamente.',
+    });
+  };
+
+  const editAccount = (id: string, updatedAccount: Omit<Account, 'id'>) => {
+    setAccounts(prev => prev.map(acc => acc.id === id ? { id, ...updatedAccount } : acc));
+    toast({
+      title: 'Éxito',
+      description: 'Cuenta actualizada correctamente.',
+    });
+  };
+
+  const deleteAccount = (id: string) => {
+    setAccounts(prev => prev.filter(acc => acc.id !== id));
+    toast({
+      title: 'Éxito',
+      description: 'Cuenta eliminada correctamente.',
+    });
+  };
+
   const value = {
     categories,
     addCategory,
     editCategory,
-    budgets,
+    budgets: processedBudgets,
     addBudget,
     transactions,
     addTransaction,
     editTransaction,
     deleteTransaction,
+    accounts,
+    addAccount,
+    editAccount,
+    deleteAccount,
   };
 
   return (
