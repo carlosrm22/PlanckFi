@@ -28,3 +28,12 @@ export interface Bill {
   dueDate: string;
   icon: LucideIcon;
 }
+
+export interface Account {
+  id: string;
+  name: string;
+  type: "Checking" | "Savings" | "Credit Card";
+  balance: number;
+  provider: string;
+  lastFour: string;
+}

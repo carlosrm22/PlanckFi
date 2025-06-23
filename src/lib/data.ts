@@ -1,5 +1,5 @@
-import type { BudgetGoal, Bill, Category } from "@/lib/types";
-import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus } from "lucide-react";
+import type { BudgetGoal, Bill, Category, Transaction, Account } from "@/lib/types";
+import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark } from "lucide-react";
 
 export const categories: Category[] = [
   { name: "Comestibles", icon: ShoppingCart, color: "text-blue-500" },
@@ -8,7 +8,25 @@ export const categories: Category[] = [
   { name: "Transporte", icon: Car, color: "text-yellow-500" },
   { name: "Salud", icon: HeartPulse, color: "text-green-500" },
   { name: "Servicios", icon: Receipt, color: "text-orange-500" },
+  { name: "Restaurante", icon: Utensils, color: "text-pink-500" },
+  { name: "Ingresos", icon: Landmark, color: "text-emerald-500" },
   { name: "Añadir Nuevo", icon: Plus, color: "text-gray-500" },
+];
+
+export const transactions: Transaction[] = [
+    { id: '1', date: '2024-07-26', description: 'Supermercado La Compra', category: 'Comestibles', amount: -75.50 },
+    { id: '2', date: '2024-07-25', description: 'Salario de Julio', category: 'Ingresos', amount: 2500.00 },
+    { id: '3', date: '2024-07-24', description: 'Suscripción a Netflix', category: 'Entretenimiento', amount: -15.99 },
+    { id: '4', date: '2024-07-23', description: 'Cena en "El Sabor"', category: 'Restaurante', amount: -45.20 },
+    { id: '5', date: '2024-07-22', description: 'Gasolina para el coche', category: 'Transporte', amount: -50.00 },
+    { id: '6', date: '2024-07-21', description: 'Entradas de cine', category: 'Entretenimiento', amount: -22.00 },
+    { id: '7', date: '2024-07-20', description: 'Factura de internet', category: 'Servicios', amount: -60.00 },
+];
+
+export const accounts: Account[] = [
+    { id: '1', name: 'Cuenta Corriente', type: 'Checking', provider: 'Banco Ficticio', balance: 5231.89, lastFour: '1234' },
+    { id: '2', name: 'Cuenta de Ahorros', type: 'Savings', provider: 'Banco Ficticio', balance: 40000.00, lastFour: '5678' },
+    { id: '3', name: 'Tarjeta de Crédito Platino', type: 'Credit Card', provider: 'Crédito Ficticio', balance: -542.12, lastFour: '9012' },
 ];
 
 export const budgetGoals: BudgetGoal[] = [
