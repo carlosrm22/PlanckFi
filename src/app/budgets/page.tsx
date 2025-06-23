@@ -34,32 +34,47 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { PlusCircle } from "lucide-react";
+import { Plus, PlusCircle } from "lucide-react";
 import { useAppData } from "@/context/app-data-context";
 
-const formSchema = z.object({
+const budgetFormSchema = z.object({
   category: z.string({ required_error: "Por favor, selecciona una categoría." }),
   amount: z.coerce
     .number({ required_error: "El monto es obligatorio." })
     .positive({ message: "El monto debe ser mayor que 0." }),
 });
 
+const categoryFormSchema = z.object({
+  name: z.string().min(2, {
+    message: "El nombre debe tener al menos 2 caracteres.",
+  }),
+});
+
+
 export default function BudgetsPage() {
-  const [open, setOpen] = useState(false);
-  const { categories, addBudget } = useAppData();
+  const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const { categories, addBudget, addCategory } = useAppData();
   
   const budgetCategories = categories.filter(
     (c) => c.name !== "Ingresos"
   );
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const budgetForm = useForm<z.infer<typeof budgetFormSchema>>({
+    resolver: zodResolver(budgetFormSchema),
     defaultValues: {
       amount: 0,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
+    resolver: zodResolver(categoryFormSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
+
+  function onBudgetSubmit(values: z.infer<typeof budgetFormSchema>) {
     const categoryInfo = categories.find((c) => c.name === values.category);
     if (!categoryInfo) return;
 
@@ -69,9 +84,17 @@ export default function BudgetsPage() {
       budgeted: values.amount,
     });
 
-    setOpen(false);
-    form.reset();
+    setBudgetDialogOpen(false);
+    budgetForm.reset();
   }
+
+  function onCategorySubmit(values: z.infer<typeof categoryFormSchema>) {
+    addCategory(values.name);
+    budgetForm.setValue("category", values.name);
+    setCategoryDialogOpen(false);
+    categoryForm.reset();
+  }
+
 
   return (
     <AppShell>
@@ -83,7 +106,7 @@ export default function BudgetsPage() {
               Gestiona tus metas de gasto mensuales.
             </p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -97,64 +120,99 @@ export default function BudgetsPage() {
                   Establece una nueva meta de gasto para una categoría.
                 </DialogDescription>
               </DialogHeader>
-              <Form {...form}>
+              <Form {...budgetForm}>
                 <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-8"
+                  onSubmit={budgetForm.handleSubmit(onBudgetSubmit)}
+                  className="space-y-4 pt-4"
                 >
-                  <div className="grid gap-4 py-4">
                     <FormField
-                      control={form.control}
+                      control={budgetForm.control}
                       name="category"
                       render={({ field }) => (
-                        <FormItem className="grid grid-cols-4 items-center gap-4">
-                          <FormLabel className="text-right">Categoría</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Selecciona una categoría" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {budgetCategories.map((category) => (
-                                <SelectItem
-                                  key={category.name}
-                                  value={category.name}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <category.icon className="h-4 w-4" />
-                                    {category.name}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage className="col-span-4" />
+                        <FormItem>
+                          <FormLabel>Categoría</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecciona una categoría" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {budgetCategories.map((category) => (
+                                  <SelectItem
+                                    key={category.name}
+                                    value={category.name}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <category.icon className="h-4 w-4" />
+                                      {category.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                              <DialogTrigger asChild>
+                                  <Button variant="outline" size="icon" className="shrink-0">
+                                      <Plus className="h-4 w-4" />
+                                      <span className="sr-only">Añadir nueva categoría</span>
+                                  </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                  <DialogHeader>
+                                      <DialogTitle>Añadir Nueva Categoría</DialogTitle>
+                                      <DialogDescription>Crea una nueva categoría para seguir tus gastos.</DialogDescription>
+                                  </DialogHeader>
+                                  <Form {...categoryForm}>
+                                      <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4 pt-4">
+                                          <FormField
+                                              control={categoryForm.control}
+                                              name="name"
+                                              render={({ field }) => (
+                                                  <FormItem>
+                                                      <FormLabel>Nombre de la Categoría</FormLabel>
+                                                      <FormControl>
+                                                          <Input placeholder="Ej. Viajes" {...field} />
+                                                      </FormControl>
+                                                      <FormMessage />
+                                                  </FormItem>
+                                              )}
+                                          />
+                                          <DialogFooter>
+                                              <Button type="submit">Guardar categoría</Button>
+                                          </DialogFooter>
+                                      </form>
+                                  </Form>
+                              </DialogContent>
+                            </Dialog>
+
+                          </div>
+                          <FormMessage/>
                         </FormItem>
                       )}
                     />
                     <FormField
-                      control={form.control}
+                      control={budgetForm.control}
                       name="amount"
                       render={({ field }) => (
-                        <FormItem className="grid grid-cols-4 items-center gap-4">
-                          <FormLabel className="text-right">Monto</FormLabel>
+                        <FormItem>
+                          <FormLabel>Monto</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               placeholder="$500"
-                              className="col-span-3"
                               {...field}
                             />
                           </FormControl>
-                          <FormMessage className="col-span-4" />
+                          <FormMessage/>
                         </FormItem>
                       )}
                     />
-                  </div>
                   <DialogFooter>
                     <Button type="submit">Guardar Presupuesto</Button>
                   </DialogFooter>
