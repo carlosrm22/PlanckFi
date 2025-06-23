@@ -16,12 +16,13 @@ export function WelcomeBanner() {
            <p className="text-sm text-muted-foreground mt-2 text-right">- Planck el Bulldog, Filósofo Financiero</p>
         </CardContent>
       </div>
-      <div className="w-full md:w-1/3 md:min-w-[250px] h-48 md:h-auto relative">
+      <div className="w-full md:w-1/3 md:max-w-sm h-48 md:h-auto relative">
         <Image
           src="/images/planck.jpg"
           alt="El famoso Bulldog Planck"
           fill
-          className="object-cover"
+          className="object-cover object-top"
+          data-ai-hint="bulldog"
         />
       </div>
     </Card>
