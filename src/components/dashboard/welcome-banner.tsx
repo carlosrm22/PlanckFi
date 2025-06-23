@@ -18,11 +18,10 @@ export function WelcomeBanner() {
       </div>
       <div className="w-full md:w-1/3 md:min-w-[250px] h-48 md:h-auto relative">
         <Image
-          src="https://placehold.co/400x400.png"
+          src="/images/planck.jpg"
           alt="El famoso Bulldog Planck"
           fill
           className="object-cover"
-          data-ai-hint="bulldog"
         />
       </div>
     </Card>
