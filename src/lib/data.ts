@@ -10,7 +10,6 @@ export const categories: Category[] = [
   { name: "Servicios", icon: Receipt, color: "text-orange-500" },
   { name: "Restaurante", icon: Utensils, color: "text-pink-500" },
   { name: "Ingresos", icon: Landmark, color: "text-emerald-500" },
-  { name: "Añadir Nuevo", icon: Plus, color: "text-gray-500" },
 ];
 
 export const transactions: Transaction[] = [

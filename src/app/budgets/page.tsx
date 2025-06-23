@@ -34,9 +34,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { categories, budgetGoals as initialBudgetGoals } from "@/lib/data";
+import { budgetGoals as initialBudgetGoals } from "@/lib/data";
 import type { BudgetGoal } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
+import { useCategories } from "@/context/categories-context";
 
 const formSchema = z.object({
   category: z.string({ required_error: "Por favor, selecciona una categoría." }),
@@ -48,9 +49,10 @@ const formSchema = z.object({
 export default function BudgetsPage() {
   const [open, setOpen] = useState(false);
   const [budgets, setBudgets] = useState<BudgetGoal[]>(initialBudgetGoals);
+  const { categories } = useCategories();
   
   const budgetCategories = categories.filter(
-    (c) => c.name !== "Ingresos" && c.name !== "Añadir Nuevo"
+    (c) => c.name !== "Ingresos"
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -172,4 +174,3 @@ export default function BudgetsPage() {
     </AppShell>
   );
 }
-

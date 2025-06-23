@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
+import { CategoriesProvider } from '@/context/categories-context';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -22,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={inter.variable} suppressHydrationWarning>
       <body className={cn('font-body antialiased')} suppressHydrationWarning>
-        {children}
+        <CategoriesProvider>{children}</CategoriesProvider>
         <Toaster />
       </body>
     </html>
