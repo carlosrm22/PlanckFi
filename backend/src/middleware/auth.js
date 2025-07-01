@@ -28,7 +28,7 @@ export const authenticateToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error de autenticación:', error);
+    console.error('❌ Error de autenticación:', error);
     
     if (error.code === 'auth/id-token-expired') {
       return res.status(401).json({
@@ -44,9 +44,16 @@ export const authenticateToken = async (req, res, next) => {
       });
     }
 
+    if (error.code === 'auth/invalid-id-token') {
+      return res.status(401).json({
+        error: 'Token inválido',
+        message: 'El token de autenticación no es válido'
+      });
+    }
+
     return res.status(401).json({
-      error: 'Token inválido',
-      message: 'El token de autenticación no es válido'
+      error: 'Error de autenticación',
+      message: 'No se pudo verificar tu identidad'
     });
   }
 };
@@ -72,6 +79,7 @@ export const optionalAuth = async (req, res, next) => {
     next();
   } catch (error) {
     // Si hay error, continuamos sin autenticación
+    console.warn('⚠️ Error en autenticación opcional:', error.message);
     next();
   }
 }; 

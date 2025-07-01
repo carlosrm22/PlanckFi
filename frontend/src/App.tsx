@@ -1,98 +1,57 @@
-import { useState } from 'react'
+import React, { useState } from 'react';
+import { AuthProvider, useAuthContext } from './contexts/AuthContext';
+import { LoginForm } from './components/auth/LoginForm';
+import { RegisterForm } from './components/auth/RegisterForm';
+import { Dashboard } from './components/dashboard/Dashboard';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+const AuthApp: React.FC = () => {
+  const { user, loading, logout } = useAuthContext();
+  const [isLogin, setIsLogin] = useState(true);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Dashboard />;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800">
-      <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-primary-600 dark:text-primary-400 mb-4">
-            🚀 PlanckFi
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            PlanckFi
           </h1>
-          <p className="text-xl text-secondary-600 dark:text-secondary-300">
-            Plataforma Financiera Innovadora
+          <p className="text-lg text-gray-600">
+            Tu asistente financiero inteligente
           </p>
-        </header>
-
-        <main className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Tarjeta de Bienvenida */}
-            <div className="card">
-              <h2 className="text-2xl font-semibold text-secondary-800 dark:text-secondary-200 mb-4">
-                ¡Bienvenido a PlanckFi!
-              </h2>
-              <p className="text-secondary-600 dark:text-secondary-400 mb-6">
-                Tu plataforma financiera del futuro. Construida con las mejores tecnologías modernas.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span className="text-sm text-secondary-600 dark:text-secondary-400">React 18 + TypeScript</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                  <span className="text-sm text-secondary-600 dark:text-secondary-400">Tailwind CSS</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                  <span className="text-sm text-secondary-600 dark:text-secondary-400">Vite Build Tool</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Tarjeta de Demostración */}
-            <div className="card">
-              <h2 className="text-2xl font-semibold text-secondary-800 dark:text-secondary-200 mb-4">
-                Demostración Interactiva
-              </h2>
-              <div className="text-center">
-                <button 
-                  onClick={() => setCount((count) => count + 1)}
-                  className="btn-primary mb-4"
-                >
-                  Contador: {count}
-                </button>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
-                  Edita <code className="bg-secondary-100 dark:bg-secondary-700 px-2 py-1 rounded">src/App.tsx</code> y guarda para probar HMR
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Sección de Características */}
-          <div className="mt-12">
-            <h2 className="text-3xl font-bold text-center text-secondary-800 dark:text-secondary-200 mb-8">
-              Características Principales
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="card text-center">
-                <div className="text-4xl mb-4">⚡</div>
-                <h3 className="text-xl font-semibold mb-2">Rendimiento</h3>
-                <p className="text-secondary-600 dark:text-secondary-400">
-                  Construido con Vite para un desarrollo ultra rápido
-                </p>
-              </div>
-              <div className="card text-center">
-                <div className="text-4xl mb-4">🎨</div>
-                <h3 className="text-xl font-semibold mb-2">Diseño Moderno</h3>
-                <p className="text-secondary-600 dark:text-secondary-400">
-                  Interfaz elegante con Tailwind CSS y modo oscuro
-                </p>
-              </div>
-              <div className="card text-center">
-                <div className="text-4xl mb-4">🛡️</div>
-                <h3 className="text-xl font-semibold mb-2">Tipo Seguro</h3>
-                <p className="text-secondary-600 dark:text-secondary-400">
-                  TypeScript para un código más robusto y mantenible
-                </p>
-              </div>
-            </div>
-          </div>
-        </main>
+        </div>
+        
+        {isLogin ? (
+          <LoginForm onSwitchToRegister={() => setIsLogin(false)} />
+        ) : (
+          <RegisterForm onSwitchToLogin={() => setIsLogin(true)} />
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default App 
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AuthApp />
+    </AuthProvider>
+  );
+};
+
+export default App; 

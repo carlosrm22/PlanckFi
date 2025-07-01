@@ -1,193 +1,163 @@
-# 🚀 PlanckFi
+# 🚀 PlanckFi - Plataforma Financiera Inteligente
 
-Una plataforma financiera innovadora construida con las mejores tecnologías modernas del desarrollo web.
+Plataforma financiera moderna construida con React, TypeScript, Tailwind CSS y Firebase.
 
-## ✨ Características
+## 📋 Características
 
-- **⚡ Rendimiento Ultra Rápido**: Construido con Vite para un desarrollo y build extremadamente rápido
-- **🎨 Diseño Moderno**: Interfaz elegante con Tailwind CSS y soporte para modo oscuro
-- **🛡️ Tipo Seguro**: TypeScript para un código más robusto y mantenible
-- **📱 Responsive**: Diseño completamente adaptativo para todos los dispositivos
-- **🔄 Hot Module Replacement**: Recarga automática durante el desarrollo
-- **📦 Optimizado**: Build optimizado para producción
-- **🔥 Backend Robusto**: API REST con Express.js y Firebase
-- **🔐 Autenticación Segura**: Firebase Authentication integrado
-- **🗄️ Base de Datos**: Firestore para datos en tiempo real
+- 🔐 **Autenticación robusta** con Firebase Auth
+- 📱 **Interfaz moderna** con Tailwind CSS
+- 🔒 **Backend seguro** con Express y Firebase Admin
+- 📊 **Dashboard financiero** (en desarrollo)
+- 📸 **OCR de recibos** (próximamente)
+- 💰 **Gestión de finanzas** (próximamente)
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Tecnologías
 
 ### Frontend
-- **React 18** - Biblioteca de interfaz de usuario
-- **TypeScript** - Tipado estático para JavaScript
-- **Tailwind CSS** - Framework CSS utility-first
-- **Vite** - Herramienta de build moderna y rápida
-- **Firebase** - SDK para autenticación y base de datos
+- React 18 + TypeScript
+- Tailwind CSS
+- Vite
+- Firebase SDK
 
 ### Backend
-- **Node.js + Express** - API REST
-- **Firebase Admin SDK** - Servicios de backend de Firebase
-- **Firestore** - Base de datos NoSQL en tiempo real
-- **Firebase Authentication** - Sistema de autenticación
-- **Firebase Storage** - Almacenamiento de archivos
+- Node.js + Express
+- Firebase Admin SDK
+- JWT Authentication
+- Rate Limiting
+- Helmet Security
 
-### Herramientas de Desarrollo
-- **ESLint** - Linter para mantener calidad de código
-- **PostCSS** - Procesador de CSS
-- **Autoprefixer** - Añade prefijos CSS automáticamente
-- **Concurrently** - Ejecutar frontend y backend simultáneamente
+## 🚀 Instalación
 
-## 📦 Instalación
-
+### 1. Clonar el repositorio
 ```bash
-# Clonar el repositorio
 git clone https://github.com/carlosrm22/PlanckFi.git
-
-# Entrar al directorio
 cd PlanckFi
-
-# Instalar todas las dependencias (frontend, backend y root)
-npm run install:all
-
-# Configurar variables de entorno
-cp backend/env.example backend/.env
-# Editar backend/.env con tus credenciales de Firebase
 ```
 
-## 🚀 Scripts Disponibles
-
+### 2. Instalar dependencias
 ```bash
-# Desarrollo (frontend + backend)
+npm run install:all
+```
+
+### 3. Configurar Firebase
+
+#### 3.1 Crear proyecto en Firebase Console
+1. Ve a [Firebase Console](https://console.firebase.google.com/)
+2. Crea un nuevo proyecto llamado "PlanckFi"
+3. Activa Authentication (Email/Password y Google)
+4. Activa Firestore Database
+5. Activa Storage
+
+#### 3.2 Configurar credenciales del backend
+1. Ve a Configuración del proyecto > Cuentas de servicio
+2. Genera una nueva clave privada
+3. Descarga el archivo JSON
+4. Copia `backend/env.example` a `backend/.env`
+5. Completa las variables con los datos del archivo JSON:
+
+```env
+FIREBASE_PROJECT_ID=tu-proyecto-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@tu-proyecto-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nTu-clave-privada-aqui\n-----END PRIVATE KEY-----\n"
+FIREBASE_STORAGE_BUCKET=tu-proyecto-id.appspot.com
+```
+
+#### 3.3 Configurar credenciales del frontend
+1. Ve a Configuración del proyecto > Configuración general
+2. En "Tus apps", agrega una app web
+3. Copia la configuración a `frontend/src/config/firebase.ts`
+
+### 4. Verificar configuración
+```bash
+cd backend
+npm run check-env
+```
+
+### 5. Ejecutar el proyecto
+
+#### Desarrollo (ambos servicios)
+```bash
 npm run dev
+```
 
-# Solo frontend
+#### Solo frontend
+```bash
 npm run dev:frontend
+```
 
-# Solo backend
+#### Solo backend
+```bash
 npm run dev:backend
-
-# Build para producción
-npm run build
-
-# Preview del build
-npm run start
-
-# Linting del código
-npm run lint
 ```
 
 ## 📁 Estructura del Proyecto
 
 ```
 PlanckFi/
-├── frontend/              # Aplicación React
+├── frontend/                 # React + TypeScript + Tailwind
 │   ├── src/
-│   │   ├── components/    # Componentes reutilizables
-│   │   ├── hooks/         # Custom hooks de React
-│   │   ├── utils/         # Funciones utilitarias
-│   │   ├── types/         # Definiciones de tipos TypeScript
-│   │   ├── assets/        # Recursos estáticos
-│   │   ├── App.tsx        # Componente principal
-│   │   ├── main.tsx       # Punto de entrada
-│   │   └── index.css      # Estilos globales
-│   ├── public/            # Archivos públicos
-│   ├── index.html         # HTML principal
-│   ├── vite.config.ts     # Configuración de Vite
-│   ├── tailwind.config.js # Configuración de Tailwind
-│   ├── tsconfig.json      # Configuración de TypeScript
-│   └── package.json       # Dependencias del frontend
-├── backend/               # API REST con Express
+│   │   ├── components/       # Componentes React
+│   │   ├── contexts/         # Contextos (Auth)
+│   │   ├── hooks/           # Hooks personalizados
+│   │   └── config/          # Configuración Firebase
+├── backend/                  # Express + Firebase Admin
 │   ├── src/
-│   │   ├── config/        # Configuraciones (Firebase, etc.)
-│   │   ├── controllers/   # Controladores de la API
-│   │   ├── middleware/    # Middleware personalizado
-│   │   ├── routes/        # Rutas de la API
-│   │   ├── utils/         # Utilidades del backend
-│   │   └── server.js      # Servidor principal
-│   ├── .env               # Variables de entorno
-│   └── package.json       # Dependencias del backend
-├── shared/                # Código compartido
-│   ├── types/             # Tipos compartidos
-│   └── utils/             # Utilidades compartidas
-├── package.json           # Configuración del workspace
-└── README.md              # Este archivo
+│   │   ├── routes/          # Rutas de la API
+│   │   ├── middleware/      # Middlewares
+│   │   ├── config/          # Configuración Firebase
+│   │   └── scripts/         # Scripts de utilidad
+└── shared/                   # Código compartido
 ```
 
-## 🔧 Configuración de Firebase
+## 🔧 Scripts Disponibles
 
-### 1. Crear Proyecto Firebase
-1. Ve a [Firebase Console](https://console.firebase.google.com/)
-2. Crea un nuevo proyecto
-3. Habilita Authentication, Firestore y Storage
+### Raíz del proyecto
+- `npm run dev` - Ejecuta frontend y backend en desarrollo
+- `npm run build` - Construye ambos proyectos
+- `npm run install:all` - Instala dependencias de todos los proyectos
 
-### 2. Configurar Autenticación
-1. En Firebase Console, ve a Authentication
-2. Habilita Email/Password
-3. Configura las reglas de seguridad
+### Backend
+- `npm run dev` - Ejecuta en modo desarrollo con nodemon
+- `npm run start` - Ejecuta en modo producción
+- `npm run check-env` - Verifica variables de entorno
 
-### 3. Configurar Firestore
-1. Ve a Firestore Database
-2. Crea la base de datos en modo de prueba
-3. Configura las reglas de seguridad
+### Frontend
+- `npm run dev` - Ejecuta servidor de desarrollo
+- `npm run build` - Construye para producción
+- `npm run preview` - Previsualiza build de producción
 
-### 4. Obtener Credenciales
-1. Ve a Project Settings > Service Accounts
-2. Genera una nueva clave privada
-3. Copia las credenciales al archivo `backend/.env`
+## 🌐 URLs de Desarrollo
 
-### 5. Variables de Entorno
-```env
-# Firebase Configuration
-FIREBASE_TYPE=service_account
-FIREBASE_PROJECT_ID=tu-project-id
-FIREBASE_PRIVATE_KEY_ID=tu-private-key-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nTu private key aquí\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@tu-project-id.iam.gserviceaccount.com
-FIREBASE_CLIENT_ID=tu-client-id
-FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
-FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
-FIREBASE_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
-FIREBASE_CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxxxx%40tu-project-id.iam.gserviceaccount.com
-FIREBASE_STORAGE_BUCKET=tu-project-id.appspot.com
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/api/health
+
+## 🔍 Troubleshooting
+
+### Error: "Variables de entorno faltantes"
+```bash
+cd backend
+npm run check-env
 ```
+Asegúrate de que el archivo `.env` esté en la carpeta `backend/` y contenga todas las variables requeridas.
 
-## 🎨 Personalización
+### Error: "Firebase Admin no inicializado"
+Verifica que las credenciales del Service Account sean correctas y que el archivo `.env` esté bien formateado.
 
-### Colores
-El proyecto incluye una paleta de colores personalizada en `frontend/tailwind.config.js`:
+### Error: "CORS"
+El backend está configurado para aceptar requests desde `http://localhost:3000`. Si usas otro puerto, actualiza `FRONTEND_URL` en el `.env`.
 
-- **Primary**: Azules para elementos principales
-- **Secondary**: Grises para elementos secundarios
+## 📝 Próximas Características
 
-### Componentes
-Los componentes están organizados en:
-- **Componentes Base**: Botones, tarjetas, etc.
-- **Componentes de Página**: Componentes específicos de cada vista
-- **Layouts**: Estructuras de página reutilizables
-
-## 🔧 Configuración
-
-### TypeScript
-Configurado con opciones estrictas para máxima seguridad de tipos.
-
-### ESLint
-Reglas configuradas para mantener la calidad del código:
-- No usar `console.log` (usar `console.warn` o `console.error`)
-- Preferir `const` sobre `let`
-- Variables no utilizadas marcadas con `_`
-
-### Tailwind CSS
-Configurado con:
-- Colores personalizados
-- Fuentes personalizadas
-- Componentes utilitarios
-
-## 📝 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+- [ ] Dashboard financiero completo
+- [ ] Subida y análisis de recibos con OCR
+- [ ] Gestión de presupuestos
+- [ ] Reportes y estadísticas
+- [ ] Integración con APIs bancarias
+- [ ] Notificaciones push
+- [ ] App móvil
 
 ## 🤝 Contribuir
-
-Las contribuciones son bienvenidas. Por favor:
 
 1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -195,11 +165,14 @@ Las contribuciones son bienvenidas. Por favor:
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📞 Contacto
+## 📄 Licencia
 
-- **GitHub**: [@carlosrm22](https://github.com/carlosrm22)
-- **Proyecto**: [PlanckFi](https://github.com/carlosrm22/PlanckFi)
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+
+## 👨‍💻 Autor
+
+**Carlos** - [GitHub](https://github.com/carlosrm22)
 
 ---
 
-Desarrollado con ❤️ usando las mejores tecnologías modernas. 
+⭐ Si este proyecto te ayuda, ¡dale una estrella! 

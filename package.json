@@ -44,5 +44,8 @@
   "bugs": {
     "url": "https://github.com/carlosrm22/PlanckFi/issues"
   },
-  "homepage": "https://github.com/carlosrm22/PlanckFi#readme"
+  "homepage": "https://github.com/carlosrm22/PlanckFi#readme",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.11"
+  }
 }

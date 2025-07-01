@@ -10,9 +10,9 @@ const router = express.Router();
  * Registra un nuevo usuario
  */
 router.post('/register', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }),
-  body('name').trim().isLength({ min: 2 })
+  body('email').isEmail().normalizeEmail().withMessage('Email inválido'),
+  body('password').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+  body('name').trim().isLength({ min: 2 }).withMessage('El nombre debe tener al menos 2 caracteres')
 ], async (req, res) => {
   try {
     // Validar datos de entrada
@@ -25,6 +25,22 @@ router.post('/register', [
     }
 
     const { email, password, name } = req.body;
+
+    // Verificar si el usuario ya existe
+    try {
+      const existingUser = await auth.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({
+          error: 'Email ya registrado',
+          message: 'Ya existe una cuenta con este email'
+        });
+      }
+    } catch (error) {
+      // Si el error es 'user-not-found', continuamos con el registro
+      if (error.code !== 'auth/user-not-found') {
+        throw error;
+      }
+    }
 
     // Crear usuario en Firebase Auth
     const userRecord = await auth.createUser({
@@ -61,12 +77,26 @@ router.post('/register', [
     });
 
   } catch (error) {
-    console.error('Error en registro:', error);
+    console.error('❌ Error en registro:', error);
     
     if (error.code === 'auth/email-already-exists') {
       return res.status(409).json({
         error: 'Email ya registrado',
         message: 'Ya existe una cuenta con este email'
+      });
+    }
+
+    if (error.code === 'auth/invalid-email') {
+      return res.status(400).json({
+        error: 'Email inválido',
+        message: 'El formato del email no es válido'
+      });
+    }
+
+    if (error.code === 'auth/weak-password') {
+      return res.status(400).json({
+        error: 'Contraseña débil',
+        message: 'La contraseña debe ser más segura'
       });
     }
 
@@ -82,8 +112,8 @@ router.post('/register', [
  * Inicia sesión de un usuario
  */
 router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').notEmpty()
+  body('email').isEmail().normalizeEmail().withMessage('Email inválido'),
+  body('password').notEmpty().withMessage('La contraseña es requerida')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -125,12 +155,19 @@ router.post('/login', [
     });
 
   } catch (error) {
-    console.error('Error en login:', error);
+    console.error('❌ Error en login:', error);
     
     if (error.code === 'auth/user-not-found') {
       return res.status(401).json({
         error: 'Credenciales inválidas',
         message: 'Email o contraseña incorrectos'
+      });
+    }
+
+    if (error.code === 'auth/invalid-email') {
+      return res.status(400).json({
+        error: 'Email inválido',
+        message: 'El formato del email no es válido'
       });
     }
 
@@ -170,7 +207,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error al obtener usuario:', error);
+    console.error('❌ Error al obtener usuario:', error);
     res.status(500).json({
       error: 'Error en el servidor',
       message: 'No se pudo obtener la información del usuario'
@@ -193,7 +230,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error en logout:', error);
+    console.error('❌ Error en logout:', error);
     res.status(500).json({
       error: 'Error en el servidor',
       message: 'No se pudo cerrar la sesión'
