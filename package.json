@@ -1,0 +1,30 @@
+{
+  "name": "planckfi",
+  "version": "1.0.0",
+  "description": "Un proyecto financiero innovador que combina tecnología moderna con soluciones financieras avanzadas",
+  "main": "index.js",
+  "scripts": {
+    "dev": "echo 'Servidor de desarrollo iniciado'",
+    "build": "echo 'Build completado'",
+    "start": "echo 'Servidor iniciado'",
+    "test": "echo 'Tests ejecutados'",
+    "lint": "echo 'Linting completado'"
+  },
+  "keywords": [
+    "fintech",
+    "react",
+    "typescript",
+    "tailwind",
+    "finance"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu-usuario/PlanckFi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tu-usuario/PlanckFi/issues"
+  },
+  "homepage": "https://github.com/tu-usuario/PlanckFi#readme"
+} 
