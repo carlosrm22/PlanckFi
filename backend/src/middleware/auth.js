@@ -5,6 +5,18 @@ import { auth } from '../config/firebase.js';
  */
 export const authenticateToken = async (req, res, next) => {
   try {
+    // En modo desarrollo, simular autenticación
+    if (process.env.NODE_ENV === 'development') {
+      const mockUser = {
+        uid: 'dev-user-123',
+        email: 'dev@planckfi.com',
+        name: 'Usuario de Desarrollo',
+      };
+      
+      req.user = mockUser;
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 

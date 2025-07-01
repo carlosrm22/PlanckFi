@@ -12,6 +12,59 @@ router.get('/stats', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     
+    // En modo desarrollo, devolver datos mock
+    if (process.env.NODE_ENV === 'development') {
+      const mockStats = {
+        totalIncome: 5000,
+        totalExpenses: 3200,
+        balance: 1800,
+        monthlyStats: [
+          { month: 'Ene', income: 4500, expenses: 2800, balance: 1700 },
+          { month: 'Feb', income: 5200, expenses: 3100, balance: 2100 },
+          { month: 'Mar', income: 4800, expenses: 2900, balance: 1900 },
+          { month: 'Abr', income: 5000, expenses: 3200, balance: 1800 },
+        ],
+        categoryBreakdown: [
+          { categoryId: '1', categoryName: 'Comida', amount: 800, percentage: 25, color: '#ef4444' },
+          { categoryId: '2', categoryName: 'Transporte', amount: 600, percentage: 19, color: '#3b82f6' },
+          { categoryId: '3', categoryName: 'Entretenimiento', amount: 400, percentage: 12, color: '#8b5cf6' },
+          { categoryId: '4', categoryName: 'Servicios', amount: 300, percentage: 9, color: '#10b981' },
+          { categoryId: '5', categoryName: 'Otros', amount: 1100, percentage: 35, color: '#f59e0b' },
+        ],
+        recentTransactions: [
+          {
+            id: '1',
+            userId: userId,
+            type: 'expense',
+            amount: 45.50,
+            currency: 'USD',
+            category: 'Comida',
+            description: 'Supermercado',
+            date: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: '2',
+            userId: userId,
+            type: 'income',
+            amount: 2500,
+            currency: 'USD',
+            category: 'Salario',
+            description: 'Pago mensual',
+            date: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+      };
+
+      return res.json({
+        success: true,
+        data: mockStats,
+      });
+    }
+    
     // Obtener transacciones del usuario
     const transactionsSnapshot = await db
       .collection('transactions')
