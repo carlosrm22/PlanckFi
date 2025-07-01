@@ -31,6 +31,9 @@ try {
 // Importar rutas
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
+import dashboardRoutes from './routes/dashboard.js';
+import transactionRoutes from './routes/transactions.js';
+import categoryRoutes from './routes/categories.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -62,6 +65,9 @@ app.use(express.urlencoded({ extended: true }));
 // Rutas de la API
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Ruta de salud
 app.get('/api/health', (req, res) => {
@@ -88,6 +94,13 @@ app.use('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('❌ Error del servidor:', err);
   
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      error: 'Invalid JSON',
+      message: 'The request body contains invalid JSON'
+    });
+  }
+
   res.status(err.status || 500).json({
     error: 'Error interno del servidor',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Algo salió mal'

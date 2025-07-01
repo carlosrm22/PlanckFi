@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { FinancialStats, Transaction } from '../../types';
+import { useDashboard } from '../../hooks/useDashboard';
 import { StatsCards } from './StatsCards';
 import { RecentTransactions } from './RecentTransactions';
 import { CategoryBreakdown } from './CategoryBreakdown';
@@ -9,72 +9,7 @@ import { QuickActions } from './QuickActions';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuthContext();
-  const [stats, setStats] = useState<FinancialStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      // TODO: Implementar llamada a la API
-      // Por ahora usamos datos mock
-      const mockStats: FinancialStats = {
-        totalIncome: 5000,
-        totalExpenses: 3200,
-        balance: 1800,
-        monthlyStats: [
-          { month: 'Ene', income: 4500, expenses: 2800, balance: 1700 },
-          { month: 'Feb', income: 5200, expenses: 3100, balance: 2100 },
-          { month: 'Mar', income: 4800, expenses: 2900, balance: 1900 },
-          { month: 'Abr', income: 5000, expenses: 3200, balance: 1800 },
-        ],
-        categoryBreakdown: [
-          { categoryId: '1', categoryName: 'Comida', amount: 800, percentage: 25, color: '#ef4444' },
-          { categoryId: '2', categoryName: 'Transporte', amount: 600, percentage: 19, color: '#3b82f6' },
-          { categoryId: '3', categoryName: 'Entretenimiento', amount: 400, percentage: 12, color: '#8b5cf6' },
-          { categoryId: '4', categoryName: 'Servicios', amount: 300, percentage: 9, color: '#10b981' },
-          { categoryId: '5', categoryName: 'Otros', amount: 1100, percentage: 35, color: '#f59e0b' },
-        ],
-        recentTransactions: [
-          {
-            id: '1',
-            userId: user?.uid || '',
-            type: 'expense',
-            amount: 45.50,
-            currency: 'USD',
-            category: 'Comida',
-            description: 'Supermercado',
-            date: new Date(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            id: '2',
-            userId: user?.uid || '',
-            type: 'income',
-            amount: 2500,
-            currency: 'USD',
-            category: 'Salario',
-            description: 'Pago mensual',
-            date: new Date(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-      };
-      
-      setStats(mockStats);
-    } catch (err) {
-      setError('Error al cargar los datos del dashboard');
-      console.warn('Error fetching dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { stats, loading, error, fetchStats, clearError } = useDashboard();
 
   if (loading) {
     return (
@@ -94,12 +29,20 @@ export const Dashboard: React.FC = () => {
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Error al cargar datos</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchDashboardData}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Reintentar
-          </button>
+          <div className="space-x-4">
+            <button
+              onClick={fetchStats}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Reintentar
+            </button>
+            <button
+              onClick={clearError}
+              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+            >
+              Continuar sin datos
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -126,7 +69,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {stats && (
+        {stats ? (
           <>
             {/* Stats Cards */}
             <div className="mb-8">
@@ -166,6 +109,20 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">📊</div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">No hay datos disponibles</h2>
+            <p className="text-gray-600 mb-4">
+              Comienza agregando algunas transacciones para ver tu dashboard
+            </p>
+            <button
+              onClick={fetchStats}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Cargar datos
+            </button>
+          </div>
         )}
       </div>
     </div>

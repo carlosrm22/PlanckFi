@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
-import { TransactionFormData, Category } from '../../types';
+import { useCategories } from '../../hooks/useCategories';
+import { TransactionFormData } from '../../types';
+import { apiService } from '../../services/api';
 
 interface TransactionFormProps {
-  onSubmit: (data: TransactionFormData) => void;
-  onCancel: () => void;
-  initialData?: Partial<TransactionFormData>;
-  categories: Category[];
-  loading?: boolean;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  initialData?: Partial<TransactionFormData> & { id?: string };
+  mode?: 'create' | 'edit';
 }
 
 export const TransactionForm: React.FC<TransactionFormProps> = ({
-  onSubmit,
+  onSuccess,
   onCancel,
   initialData,
-  categories,
-  loading = false,
+  mode = 'create',
 }) => {
+  const { categories, loading: categoriesLoading } = useCategories();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState<TransactionFormData>({
     type: initialData?.type || 'expense',
     amount: initialData?.amount || 0,
@@ -25,41 +29,60 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     tags: initialData?.tags || [],
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tagInput, setTagInput] = useState('');
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (formData.amount <= 0) {
-      newErrors.amount = 'El monto debe ser mayor a 0';
-    }
-
-    if (!formData.category) {
-      newErrors.category = 'Selecciona una categoría';
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'La descripción es requerida';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'amount' ? parseFloat(value) || 0 : 
+              name === 'date' ? new Date(value) : value,
+    }));
+    setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleTagAdd = () => {
+    if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...(prev.tags || []), tagInput.trim()],
+      }));
+      setTagInput('');
+    }
+  };
+
+  const handleTagRemove = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: (prev.tags || []).filter(tag => tag !== tagToRemove),
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (validateForm()) {
-      onSubmit(formData);
+    if (!formData.category) {
+      alert('Por favor selecciona una categoría');
+      return;
     }
-  };
 
-  const handleInputChange = (field: keyof TransactionFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Limpiar error del campo
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (mode === 'create') {
+        await apiService.createTransaction(formData);
+      } else if (initialData?.id) {
+        await apiService.updateTransaction(initialData.id, formData);
+      }
+      
+      onSuccess?.();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al guardar transacción';
+      setError(errorMessage);
+      console.warn('Error al guardar transacción:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,11 +90,27 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">
-        {initialData ? 'Editar Transacción' : 'Nueva Transacción'}
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">
+          {mode === 'create' ? 'Nueva Transacción' : 'Editar Transacción'}
+        </h2>
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ✕
+          </button>
+        )}
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Tipo de Transacción */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -81,20 +120,22 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             <label className="flex items-center">
               <input
                 type="radio"
+                name="type"
                 value="expense"
                 checked={formData.type === 'expense'}
-                onChange={(e) => handleInputChange('type', e.target.value)}
-                className="mr-2"
+                onChange={handleInputChange}
+                className="mr-2 text-red-600 focus:ring-red-500"
               />
               <span className="text-sm text-gray-700">Gasto</span>
             </label>
             <label className="flex items-center">
               <input
                 type="radio"
+                name="type"
                 value="income"
                 checked={formData.type === 'income'}
-                onChange={(e) => handleInputChange('type', e.target.value)}
-                className="mr-2"
+                onChange={handleInputChange}
+                className="mr-2 text-green-600 focus:ring-green-500"
               />
               <span className="text-sm text-gray-700">Ingreso</span>
             </label>
@@ -113,19 +154,16 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             <input
               type="number"
               id="amount"
+              name="amount"
               value={formData.amount}
-              onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
-              className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.amount ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="0.00"
+              onChange={handleInputChange}
               step="0.01"
-              min="0"
+              min="0.01"
+              required
+              className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="0.00"
             />
           </div>
-          {errors.amount && (
-            <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
-          )}
         </div>
 
         {/* Categoría */}
@@ -133,23 +171,26 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
             Categoría
           </label>
-          <select
-            id="category"
-            value={formData.category}
-            onChange={(e) => handleInputChange('category', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.category ? 'border-red-500' : 'border-gray-300'
-            }`}
-          >
-            <option value="">Selecciona una categoría</option>
-            {filteredCategories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-          {errors.category && (
-            <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+          {categoriesLoading ? (
+            <div className="w-full py-2 px-3 border border-gray-300 rounded-md bg-gray-50">
+              <div className="animate-pulse h-4 bg-gray-200 rounded"></div>
+            </div>
+          ) : (
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Selecciona una categoría</option>
+              {filteredCategories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.icon} {category.name}
+                </option>
+              ))}
+            </select>
           )}
         </div>
 
@@ -158,19 +199,16 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
             Descripción
           </label>
-          <input
-            type="text"
+          <textarea
             id="description"
+            name="description"
             value={formData.description}
-            onChange={(e) => handleInputChange('description', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.description ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Descripción de la transacción"
+            onChange={handleInputChange}
+            required
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Describe la transacción..."
           />
-          {errors.description && (
-            <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-          )}
         </div>
 
         {/* Fecha */}
@@ -181,46 +219,74 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           <input
             type="date"
             id="date"
+            name="date"
             value={formData.date.toISOString().split('T')[0]}
-            onChange={(e) => handleInputChange('date', new Date(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={handleInputChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
-        {/* Etiquetas */}
+        {/* Tags */}
         <div>
-          <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
-            Etiquetas (opcional)
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Etiquetas
           </label>
-          <input
-            type="text"
-            id="tags"
-            value={formData.tags?.join(', ') || ''}
-            onChange={(e) => handleInputChange('tags', e.target.value.split(',').map(tag => tag.trim()).filter(Boolean))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="etiqueta1, etiqueta2, etiqueta3"
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Separa las etiquetas con comas
-          </p>
+          <div className="flex space-x-2 mb-2">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleTagAdd())}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Agregar etiqueta..."
+            />
+            <button
+              type="button"
+              onClick={handleTagAdd}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              +
+            </button>
+          </div>
+          {formData.tags && formData.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map(tag => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleTagRemove(tag)}
+                    className="ml-1 text-blue-600 hover:text-blue-800"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Botones */}
-        <div className="flex justify-end space-x-4 pt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-            disabled={loading}
-          >
-            Cancelar
-          </button>
+        <div className="flex justify-end space-x-3 pt-4">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              Cancelar
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
+            {loading ? 'Guardando...' : mode === 'create' ? 'Crear Transacción' : 'Actualizar Transacción'}
           </button>
         </div>
       </form>

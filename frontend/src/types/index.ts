@@ -50,7 +50,8 @@ export interface Category {
   type: 'income' | 'expense';
   color: string;
   icon: string;
-  isDefault: boolean;
+  description?: string;
+  isDefault?: boolean;
   createdAt: Date;
 }
 
@@ -136,6 +137,7 @@ export interface CategoryFormData {
   type: 'income' | 'expense';
   color: string;
   icon: string;
+  description?: string;
 }
 
 export interface BudgetFormData {
