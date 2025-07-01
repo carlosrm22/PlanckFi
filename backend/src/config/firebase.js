@@ -2,13 +2,14 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
+import { getDatabase } from 'firebase-admin/database';
 
 // Verificar si estamos en modo desarrollo
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-let auth, db, storage;
+let auth, db, storage, realtimeDb;
 
-if (isDevelopment) {
+if (isDevelopment && !process.env.FIREBASE_PROJECT_ID) {
   console.log('🔧 Modo desarrollo: Usando simulación de Firebase');
   
   // Crear simulación simple
@@ -48,6 +49,17 @@ if (isDevelopment) {
       })
     })
   };
+
+  realtimeDb = {
+    ref: () => ({
+      child: () => ({
+        set: () => Promise.resolve(),
+        get: () => Promise.resolve({ val: () => null }),
+        update: () => Promise.resolve(),
+        remove: () => Promise.resolve()
+      })
+    })
+  };
   
   console.log('✅ Simulación de Firebase inicializada en modo desarrollo');
 } else {
@@ -65,6 +77,7 @@ if (isDevelopment) {
       console.error('❌ Variables de entorno faltantes:', missingVars);
       console.error('💡 Asegúrate de crear el archivo .env en la carpeta backend/');
       console.error('📄 Usa env.example como plantilla');
+      console.error('🔑 Obtén las credenciales desde Firebase Console > Configuración > Cuentas de servicio');
       throw new Error(`Variables de entorno faltantes: ${missingVars.join(', ')}`);
     }
   };
@@ -91,10 +104,12 @@ if (isDevelopment) {
     try {
       initializeApp({
         credential: cert(firebaseConfig),
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        databaseURL: process.env.FIREBASE_DATABASE_URL
       });
       console.log('✅ Firebase Admin inicializado correctamente');
       console.log(`📊 Proyecto: ${process.env.FIREBASE_PROJECT_ID}`);
+      console.log(`🗄️ Realtime Database: ${process.env.FIREBASE_DATABASE_URL}`);
     } catch (error) {
       console.error('❌ Error al inicializar Firebase Admin:', error.message);
       console.error('🔍 Verifica que las credenciales del Service Account sean correctas');
@@ -106,6 +121,7 @@ if (isDevelopment) {
   auth = getAuth();
   db = getFirestore();
   storage = getStorage();
+  realtimeDb = getDatabase();
 
   // Configuración de Firestore
   db.settings({
@@ -114,10 +130,11 @@ if (isDevelopment) {
 }
 
 // Exportar servicios de Firebase
-export { auth, db, storage };
+export { auth, db, storage, realtimeDb };
 
 export default {
   auth,
   db,
-  storage
+  storage,
+  realtimeDb
 }; 

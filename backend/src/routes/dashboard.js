@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateToken } from '../middleware/auth.js';
-import { db } from '../config/firebase.js';
+import { db, realtimeDb } from '../config/firebase.js';
 
 const router = express.Router();
 
@@ -12,8 +12,8 @@ router.get('/stats', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     
-    // En modo desarrollo, devolver datos mock
-    if (process.env.NODE_ENV === 'development') {
+    // En modo desarrollo sin Firebase real, devolver datos mock
+    if (process.env.NODE_ENV === 'development' && !process.env.FIREBASE_PROJECT_ID) {
       const mockStats = {
         totalIncome: 5000,
         totalExpenses: 3200,
@@ -64,129 +64,89 @@ router.get('/stats', authenticateToken, async (req, res) => {
         data: mockStats,
       });
     }
+
+    // Usar Firebase Realtime Database
+    const userRef = realtimeDb.ref(`users/${userId}`);
     
     // Obtener transacciones del usuario
-    const transactionsSnapshot = await db
-      .collection('transactions')
-      .where('userId', '==', userId)
-      .orderBy('date', 'desc')
-      .limit(100)
-      .get();
+    const transactionsSnapshot = await userRef.child('transactions').get();
+    const transactions = transactionsSnapshot.val() || {};
+    
+    // Obtener categorías del usuario
+    const categoriesSnapshot = await userRef.child('categories').get();
+    const categories = categoriesSnapshot.val() || {};
 
-    const transactions = [];
-    transactionsSnapshot.forEach(doc => {
-      transactions.push({
-        id: doc.id,
-        ...doc.data(),
-        date: doc.data().date.toDate(),
-        createdAt: doc.data().createdAt.toDate(),
-        updatedAt: doc.data().updatedAt.toDate(),
-      });
-    });
+    // Calcular estadísticas
+    const transactionList = Object.values(transactions);
+    const categoryList = Object.values(categories);
 
-    // Calcular estadísticas básicas
-    const totalIncome = transactions
+    const totalIncome = transactionList
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const totalExpenses = transactions
+    const totalExpenses = transactionList
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const balance = totalIncome - totalExpenses;
 
-    // Obtener categorías del usuario
-    const categoriesSnapshot = await db
-      .collection('categories')
-      .where('userId', '==', userId)
-      .get();
-
-    const categories = [];
-    categoriesSnapshot.forEach(doc => {
-      categories.push({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt.toDate(),
-      });
-    });
-
-    // Calcular desglose por categorías (solo gastos)
-    const expenseTransactions = transactions.filter(t => t.type === 'expense');
-    const categoryBreakdown = [];
-    const categoryTotals = {};
-
-    expenseTransactions.forEach(transaction => {
-      const categoryId = transaction.category;
-      if (!categoryTotals[categoryId]) {
-        categoryTotals[categoryId] = 0;
-      }
-      categoryTotals[categoryId] += transaction.amount;
-    });
-
-    // Encontrar información de categorías
-    Object.entries(categoryTotals).forEach(([categoryId, amount]) => {
-      const category = categories.find(c => c.id === categoryId);
-      if (category) {
-        categoryBreakdown.push({
-          categoryId,
-          categoryName: category.name,
+    // Calcular desglose por categorías
+    const categoryBreakdown = categoryList
+      .filter(cat => cat.type === 'expense')
+      .map(cat => {
+        const categoryTransactions = transactionList.filter(t => t.categoryId === cat.id && t.type === 'expense');
+        const amount = categoryTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+        const percentage = totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0;
+        
+        return {
+          categoryId: cat.id,
+          categoryName: cat.name,
           amount,
-          percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0,
-          color: category.color,
-        });
-      }
-    });
+          percentage: Math.round(percentage),
+          color: cat.color || '#6b7280'
+        };
+      })
+      .filter(cat => cat.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
 
-    // Ordenar por monto descendente
-    categoryBreakdown.sort((a, b) => b.amount - a.amount);
+    // Transacciones recientes (últimas 5)
+    const recentTransactions = transactionList
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5)
+      .map(t => ({
+        ...t,
+        date: new Date(t.date),
+        createdAt: new Date(t.createdAt),
+        updatedAt: new Date(t.updatedAt)
+      }));
 
-    // Calcular estadísticas mensuales (últimos 6 meses)
+    // Estadísticas mensuales (últimos 4 meses)
     const monthlyStats = [];
     const now = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 3; i >= 0; i--) {
       const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
-      const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
-
-      const monthTransactions = transactions.filter(t => {
+      const monthKey = month.toISOString().slice(0, 7); // YYYY-MM
+      
+      const monthTransactions = transactionList.filter(t => {
         const transactionDate = new Date(t.date);
-        return transactionDate >= monthStart && transactionDate <= monthEnd;
+        return transactionDate.toISOString().slice(0, 7) === monthKey;
       });
 
       const monthIncome = monthTransactions
         .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
 
       const monthExpenses = monthTransactions
         .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const monthBalance = monthIncome - monthExpenses;
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
 
       monthlyStats.push({
-        month: month.toLocaleDateString('es-MX', { month: 'short' }),
+        month: month.toLocaleDateString('es-ES', { month: 'short' }),
         income: monthIncome,
         expenses: monthExpenses,
-        balance: monthBalance,
+        balance: monthIncome - monthExpenses
       });
     }
-
-    // Transacciones recientes (últimas 5)
-    const recentTransactions = transactions
-      .slice(0, 5)
-      .map(t => ({
-        id: t.id,
-        userId: t.userId,
-        type: t.type,
-        amount: t.amount,
-        currency: t.currency,
-        category: t.category,
-        description: t.description,
-        date: t.date,
-        createdAt: t.createdAt,
-        updatedAt: t.updatedAt,
-      }));
 
     const stats = {
       totalIncome,
@@ -194,19 +154,19 @@ router.get('/stats', authenticateToken, async (req, res) => {
       balance,
       monthlyStats,
       categoryBreakdown,
-      recentTransactions,
+      recentTransactions
     };
 
     res.json({
       success: true,
       data: stats,
     });
-
   } catch (error) {
     console.error('❌ Error al obtener estadísticas del dashboard:', error);
     res.status(500).json({
-      error: 'Error en el servidor',
-      message: 'No se pudieron obtener las estadísticas del dashboard'
+      success: false,
+      error: 'Error interno del servidor',
+      message: error.message
     });
   }
 });

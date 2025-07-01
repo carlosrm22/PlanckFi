@@ -9,7 +9,9 @@
     "dev": "nodemon src/server.js",
     "build": "echo 'No build step required for Node.js'",
     "test": "echo 'No tests specified'",
-    "check-env": "node scripts/check-env.js"
+    "check-env": "node scripts/check-env.js",
+    "setup-dev": "node setup-dev.js",
+    "setup-firebase": "node setup-firebase.js"
   },
   "keywords": [
     "fintech",
