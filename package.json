@@ -1,31 +1,48 @@
 {
   "name": "planckfi",
-  "private": true,
   "version": "1.0.0",
-  "type": "module",
+  "description": "Plataforma Financiera Innovadora - Frontend y Backend",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "cd frontend && npm run preview",
+    "start:backend": "cd backend && npm start",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint"
   },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
+  "keywords": [
+    "fintech",
+    "react",
+    "typescript",
+    "tailwind",
+    "firebase",
+    "express",
+    "finance"
+  ],
+  "author": "Carlos",
+  "license": "MIT",
   "devDependencies": {
-    "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^8.55.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.8"
-  }
+    "concurrently": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carlosrm22/PlanckFi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/carlosrm22/PlanckFi/issues"
+  },
+  "homepage": "https://github.com/carlosrm22/PlanckFi#readme"
 }
