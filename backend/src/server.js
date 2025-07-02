@@ -21,12 +21,7 @@ console.log('🌍 NODE_ENV:', process.env.NODE_ENV);
 console.log('🚀 PORT:', process.env.PORT);
 
 // Importar Firebase DESPUÉS de cargar las variables de entorno
-try {
-  import('./config/firebase.js');
-} catch (error) {
-  console.error('❌ Error al cargar Firebase:', error.message);
-  process.exit(1);
-}
+import './config/firebase.js';
 
 // Importar rutas
 import authRoutes from './routes/auth.js';

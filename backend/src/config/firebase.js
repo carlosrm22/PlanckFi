@@ -7,9 +7,36 @@ import { getDatabase } from 'firebase-admin/database';
 // Verificar si estamos en modo desarrollo
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-let auth, db, storage, realtimeDb;
+// Función para validar variables de entorno requeridas
+const validateEnvironmentVariables = () => {
+  const requiredVars = [
+    'FIREBASE_PROJECT_ID',
+    'FIREBASE_CLIENT_EMAIL',
+    'FIREBASE_PRIVATE_KEY'
+  ];
 
-if (isDevelopment && !process.env.FIREBASE_PROJECT_ID) {
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    console.error('❌ Variables de entorno faltantes:', missingVars);
+    console.error('💡 Asegúrate de crear el archivo .env en la carpeta backend/');
+    console.error('📄 Usa env.example como plantilla');
+    console.error('🔑 Obtén las credenciales desde Firebase Console > Configuración > Cuentas de servicio');
+    throw new Error(`Variables de entorno faltantes: ${missingVars.join(', ')}`);
+  }
+};
+
+let auth, db, storage, realtimeDb;
+let isInitialized = false;
+
+// Función para inicializar Firebase
+const initializeFirebase = () => {
+  if (isInitialized) return;
+  
+  // Validar variables antes de continuar
+  validateEnvironmentVariables();
+
+  if (isDevelopment && !process.env.FIREBASE_PROJECT_ID) {
   console.log('🔧 Modo desarrollo: Usando simulación de Firebase');
   
   // Crear simulación simple
@@ -63,27 +90,6 @@ if (isDevelopment && !process.env.FIREBASE_PROJECT_ID) {
   
   console.log('✅ Simulación de Firebase inicializada en modo desarrollo');
 } else {
-  // Función para validar variables de entorno requeridas
-  const validateEnvironmentVariables = () => {
-    const requiredVars = [
-      'FIREBASE_PROJECT_ID',
-      'FIREBASE_CLIENT_EMAIL',
-      'FIREBASE_PRIVATE_KEY'
-    ];
-
-    const missingVars = requiredVars.filter(varName => !process.env[varName]);
-    
-    if (missingVars.length > 0) {
-      console.error('❌ Variables de entorno faltantes:', missingVars);
-      console.error('💡 Asegúrate de crear el archivo .env en la carpeta backend/');
-      console.error('📄 Usa env.example como plantilla');
-      console.error('🔑 Obtén las credenciales desde Firebase Console > Configuración > Cuentas de servicio');
-      throw new Error(`Variables de entorno faltantes: ${missingVars.join(', ')}`);
-    }
-  };
-
-  // Validar variables antes de continuar
-  validateEnvironmentVariables();
 
   // Configuración de Firebase Admin
   const firebaseConfig = {
@@ -127,14 +133,38 @@ if (isDevelopment && !process.env.FIREBASE_PROJECT_ID) {
   db.settings({
     ignoreUndefinedProperties: true
   });
-}
+  }
+  
+  isInitialized = true;
+};
+
+// Funciones getter que inicializan Firebase cuando se acceden
+const getFirebaseAuth = () => {
+  initializeFirebase();
+  return auth;
+};
+
+const getFirebaseDb = () => {
+  initializeFirebase();
+  return db;
+};
+
+const getFirebaseStorage = () => {
+  initializeFirebase();
+  return storage;
+};
+
+const getFirebaseRealtimeDb = () => {
+  initializeFirebase();
+  return realtimeDb;
+};
 
 // Exportar servicios de Firebase
-export { auth, db, storage, realtimeDb };
+export { getFirebaseAuth as auth, getFirebaseDb as db, getFirebaseStorage as storage, getFirebaseRealtimeDb as realtimeDb };
 
 export default {
-  auth,
-  db,
-  storage,
-  realtimeDb
+  auth: getFirebaseAuth,
+  db: getFirebaseDb,
+  storage: getFirebaseStorage,
+  realtimeDb: getFirebaseRealtimeDb
 }; 
