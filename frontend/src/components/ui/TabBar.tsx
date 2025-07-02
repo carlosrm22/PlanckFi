@@ -65,7 +65,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
                 aria-label={tab.label}
               >
                 <Icon
-                  className={`ios-w-7 ios-h-7 ios-mb-0.5 ios-transition-colors ios-duration-200 ${
+                  className={`ios-icon-tabbar ios-transition-colors ios-duration-200 ${
                     isActive ? 'ios-text-primary-500' : 'ios-text-base-500 dark:ios-text-base-dark-500'
                   }`}
                   aria-hidden="true"

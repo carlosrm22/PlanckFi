@@ -1427,4 +1427,17 @@ html, body, #root, .ios-app, .ios-main, .ios-container, .ios-container-wide, .io
 /* Para grids y flex que puedan crecer */
 .ios-flex, .ios-grid, .grid, .flex {
   min-width: 0 !important;
+}
+
+.ios-icon-tabbar {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+  flex-grow: 0;
+  max-width: 28px;
+  max-height: 28px;
 } 
