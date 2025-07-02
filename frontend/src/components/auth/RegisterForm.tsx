@@ -1,38 +1,31 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { Button, Card, CardHeader, CardTitle, CardContent, Input, Badge } from '../ui';
+import { Mail, Lock, Eye, EyeOff, User, Zap, ArrowRight, CheckCircle } from 'lucide-react';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register, loginWithGoogle, loading, error, clearError } = useAuthContext();
-
-  const validatePassword = (password: string, confirmPassword: string) => {
-    if (password.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres';
-    }
-    if (password !== confirmPassword) {
-      return 'Las contraseñas no coinciden';
-    }
-    return '';
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    setPasswordError('');
-
-    const validationError = validatePassword(password, confirmPassword);
-    if (validationError) {
-      setPasswordError(validationError);
+    
+    if (password !== confirmPassword) {
+      console.warn('Las contraseñas no coinciden');
       return;
     }
-
+    
     try {
       await register(email, password);
     } catch (err) {
@@ -40,129 +33,201 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleRegister = async () => {
     clearError();
     try {
       await loginWithGoogle();
     } catch (err) {
-      console.warn('Error en login con Google:', err);
+      console.warn('Error en registro con Google:', err);
     }
   };
 
+  const isPasswordValid = password.length >= 8;
+  const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
+
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Crear Cuenta
-        </h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-md mx-auto"
+    >
+      <Card variant="glass" className="relative overflow-hidden">
+        {/* Decorative gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-accentA-500/5 to-primary-500/5" />
         
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+        <CardHeader className="relative z-10 text-center pb-6">
+          <div className="w-16 h-16 bg-gradient-to-r from-accentA-500 to-primary-500 rounded-neubrutalist flex items-center justify-center mx-auto mb-4">
+            <Zap className="w-8 h-8 text-white" />
           </div>
-        )}
+          <CardTitle className="text-3xl font-bold text-gradient">
+            Únete a PlanckFi
+          </CardTitle>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">
+            Crea tu cuenta y comienza a gestionar tus finanzas
+          </p>
+        </CardHeader>
 
-        {passwordError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {passwordError}
-          </div>
-        )}
+        <CardContent className="relative z-10 space-y-6">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-neubrutalist p-4"
+            >
+              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            </motion.div>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Correo Electrónico
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="tu@email.com"
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Nombre Completo
+              </label>
+              <Input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Tu nombre completo"
+                icon={<User className="w-4 h-4" />}
+                required
+              />
+            </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="••••••••"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Mínimo 6 caracteres
-            </p>
-          </div>
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Correo Electrónico
+              </label>
+              <Input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                icon={<Mail className="w-4 h-4" />}
+                required
+              />
+            </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirmar Contraseña
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Contraseña
+              </label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  icon={<Lock className="w-4 h-4" />}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {password.length > 0 && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <CheckCircle className={`w-4 h-4 ${isPasswordValid ? 'text-accentA-500' : 'text-gray-400'}`} />
+                  <span className={isPasswordValid ? 'text-accentA-500' : 'text-gray-500'}>
+                    Mínimo 8 caracteres
+                  </span>
+                </div>
+              )}
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
-          </button>
-        </form>
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Confirmar Contraseña
+              </label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  icon={<Lock className="w-4 h-4" />}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {confirmPassword.length > 0 && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <CheckCircle className={`w-4 h-4 ${passwordsMatch ? 'text-accentA-500' : 'text-red-500'}`} />
+                  <span className={passwordsMatch ? 'text-accentA-500' : 'text-red-500'}>
+                    {passwordsMatch ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden'}
+                  </span>
+                </div>
+              )}
+            </div>
 
-        <div className="mt-6">
+            <Button
+              type="submit"
+              loading={loading}
+              size="lg"
+              className="w-full neubrutalist-effect"
+              disabled={!isPasswordValid || !passwordsMatch}
+              icon={<ArrowRight className="w-4 h-4" />}
+            >
+              {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+            </Button>
+          </form>
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">O continúa con</span>
+              <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                O regístrate con
+              </span>
             </div>
           </div>
 
-          <button
-            onClick={handleGoogleLogin}
+          <Button
+            onClick={handleGoogleRegister}
             disabled={loading}
-            className="mt-4 w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            variant="secondary"
+            size="lg"
+            className="w-full"
+            icon={
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+            }
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Google
-          </button>
-        </div>
+            Registrarse con Google
+          </Button>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            ¿Ya tienes cuenta?{' '}
-            <button
-              onClick={onSwitchToLogin}
-              className="text-blue-600 hover:text-blue-500 font-medium"
-            >
-              Inicia sesión aquí
-            </button>
-          </p>
-        </div>
-      </div>
-    </div>
+          <div className="text-center pt-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              ¿Ya tienes cuenta?{' '}
+              <button
+                onClick={onSwitchToLogin}
+                className="text-primary-600 hover:text-primary-500 font-medium transition-colors"
+              >
+                Inicia sesión aquí
+              </button>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }; 
