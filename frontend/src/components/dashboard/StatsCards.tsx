@@ -4,8 +4,6 @@ import { FinancialStats } from '../../types';
 import { 
   ArrowTrendingUpIcon, 
   ArrowTrendingDownIcon, 
-  CurrencyDollarIcon, 
-  CreditCardIcon, 
   BanknotesIcon, 
   ChartBarIcon 
 } from '@heroicons/react/24/outline';

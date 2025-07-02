@@ -2,8 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   PlusIcon, 
-  ArrowUpIcon, 
-  ArrowDownIcon,
   DocumentTextIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';

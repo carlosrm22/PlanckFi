@@ -44,7 +44,7 @@ export const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onReceiptProcessed
         setReceipts(prev => [...prev, receipt]);
 
         // Simular procesamiento OCR
-        await processReceiptOCR(receipt, file);
+        await processReceiptOCR(receipt);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al procesar archivos');
@@ -54,7 +54,7 @@ export const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onReceiptProcessed
     }
   }, []);
 
-  const processReceiptOCR = async (receipt: Receipt, file: File) => {
+  const processReceiptOCR = async (receipt: Receipt) => {
     setProcessing(true);
     
     try {

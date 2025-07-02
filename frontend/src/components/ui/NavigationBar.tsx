@@ -2,9 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeftIcon, 
-  EllipsisHorizontalIcon,
-  BellIcon,
-  Cog6ToothIcon
+  EllipsisHorizontalIcon
 } from '@heroicons/react/24/outline';
 
 interface NavigationBarProps {

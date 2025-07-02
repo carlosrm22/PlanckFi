@@ -4,7 +4,7 @@ import { usePWA } from '../../hooks/usePWA';
 import { XMarkIcon, ArrowDownTrayIcon, ShareIcon } from '@heroicons/react/24/outline';
 
 export const PWAInstallPrompt: React.FC = () => {
-  const { isInstallable, isInstalled, installApp, addToHomeScreen, shareApp } = usePWA();
+  const { isInstallable, isInstalled, installApp, shareApp } = usePWA();
 
   if (isInstalled || !isInstallable) {
     return null;

@@ -22,7 +22,7 @@ const ProfilePage: React.FC = () => {
       {/* Navigation Bar */}
       <NavigationBar 
         title="Perfil"
-        showBackButton={false}
+        showBack={false}
       />
 
       {/* Contenido principal */}
@@ -237,7 +237,16 @@ const ProfilePage: React.FC = () => {
       </main>
 
       {/* Tab Bar */}
-      <TabBar activeTab="profile" />
+      <TabBar 
+        activeTab="profile" 
+        onTabChange={(tab) => {
+          // Navegación entre tabs
+          if (tab === 'dashboard') window.location.href = '/dashboard';
+          if (tab === 'analytics') window.location.href = '/analytics';
+          if (tab === 'add') window.location.href = '/add-transaction';
+          if (tab === 'receipts') window.location.href = '/receipts';
+        }} 
+      />
     </div>
   );
 };

@@ -7,7 +7,6 @@ import {
   TransactionFormData,
   CategoryFormData,
   TransactionFilters,
-  ApiResponse,
   PaginatedResponse,
 } from '../types';
 

@@ -38,80 +38,80 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md mx-auto"
+      className="ios-w-full ios-max-w-md ios-mx-auto"
     >
-      <div className="ios-card-large relative overflow-hidden">
+      <div className="ios-card-large ios-relative ios-overflow-hidden">
         {/* Decorative gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+        <div className="ios-absolute ios-inset-0 ios-bg-gradient-to-br ios-from-primary-500/5 ios-to-system-purple/5" />
         
-        <div className="relative z-10 text-center pb-6">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="ios-relative ios-z-10 ios-text-center ios-pb-6">
+          <div className="ios-w-16 ios-h-16 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-2xl ios-flex ios-items-center ios-justify-center ios-mx-auto ios-mb-4">
+            <svg className="ios-w-8 ios-h-8 ios-text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="ios-title text-gray-900 dark:text-white">
+          <h2 className="ios-title ios-text-base-900 dark:ios-text-base-dark-100">
             Bienvenido de vuelta
           </h2>
-          <p className="ios-caption text-gray-500 dark:text-gray-400 mt-2">
+          <p className="ios-caption ios-text-base-500 dark:ios-text-base-dark-500 ios-mt-2">
             Accede a tu cuenta PlanckFi
           </p>
         </div>
 
-        <div className="relative z-10 space-y-6">
+        <div className="ios-relative ios-z-10 ios-space-y-6">
           {error && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4"
+              className="ios-bg-system-red/10 dark:ios-bg-system-red/20 ios-border ios-border-system-red/20 dark:ios-border-system-red/30 ios-rounded-xl ios-p-4"
             >
-              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+              <p className="ios-text-system-red dark:ios-text-system-red/80 ios-text-sm">{error}</p>
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <form onSubmit={handleSubmit} className="ios-space-y-4">
+            <div className="ios-space-y-2">
+              <label htmlFor="email" className="ios-block ios-text-sm ios-font-medium ios-text-base-700 dark:ios-text-base-dark-300">
                 Correo Electrónico
               </label>
-              <div className="relative">
-                <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <div className="ios-relative">
+                <EnvelopeIcon className="ios-absolute ios-left-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-w-5 ios-h-5 ios-text-base-400" />
                 <input
                   type="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
-                  className="ios-input pl-10"
+                  className="ios-input ios-pl-10"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className="ios-space-y-2">
+              <label htmlFor="password" className="ios-block ios-text-sm ios-font-medium ios-text-base-700 dark:ios-text-base-dark-300">
                 Contraseña
               </label>
-              <div className="relative">
-                <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <div className="ios-relative">
+                <LockClosedIcon className="ios-absolute ios-left-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-w-5 ios-h-5 ios-text-base-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="ios-input pl-10 pr-10"
+                  className="ios-input ios-pl-10 ios-pr-10"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ios-haptic"
+                  className="ios-absolute ios-right-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-text-base-400 hover:ios-text-base-600 dark:hover:ios-text-base-dark-300 ios-haptic"
                 >
                   {showPassword ? (
-                    <EyeSlashIcon className="w-5 h-5" />
+                    <EyeSlashIcon className="ios-w-5 ios-h-5" />
                   ) : (
-                    <EyeIcon className="w-5 h-5" />
+                    <EyeIcon className="ios-w-5 ios-h-5" />
                   )}
                 </button>
               </div>
@@ -120,11 +120,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             <motion.button
               type="submit"
               disabled={loading}
-              className="ios-button w-full ios-haptic"
+              className="ios-button ios-w-full ios-haptic"
               whileTap={{ scale: 0.98 }}
             >
               {loading ? (
-                <div className="flex items-center justify-center space-x-2">
+                <div className="ios-flex ios-items-center ios-justify-center ios-space-x-2">
                   <div className="ios-spinner"></div>
                   <span>Iniciando sesión...</span>
                 </div>
@@ -134,12 +134,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             </motion.button>
           </form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+          <div className="ios-relative">
+            <div className="ios-absolute ios-inset-0 ios-flex ios-items-center">
+              <div className="ios-w-full ios-border-t ios-border-base-200 dark:ios-border-base-dark-200" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+            <div className="ios-relative ios-flex ios-justify-center ios-text-sm">
+              <span className="ios-px-4 ios-bg-base-100 dark:ios-bg-base-dark-100 ios-text-base-500 dark:ios-text-base-dark-500">
                 O continúa con
               </span>
             </div>
@@ -148,11 +148,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
           <motion.button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="ios-button-secondary w-full ios-haptic"
+            className="ios-button-secondary ios-w-full ios-haptic"
             whileTap={{ scale: 0.98 }}
           >
-            <div className="flex items-center justify-center space-x-2">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <div className="ios-flex ios-items-center ios-justify-center ios-space-x-2">
+              <svg className="ios-w-5 ios-h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -162,12 +162,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             </div>
           </motion.button>
 
-          <div className="text-center pt-4">
-            <p className="ios-caption text-gray-500 dark:text-gray-400">
+          <div className="ios-text-center ios-pt-4">
+            <p className="ios-caption ios-text-base-500 dark:ios-text-base-dark-500">
               ¿No tienes cuenta?{' '}
               <button
                 onClick={onSwitchToRegister}
-                className="text-blue-500 hover:text-blue-600 font-medium transition-colors"
+                className="ios-text-primary-500 hover:ios-text-primary-600 ios-font-medium ios-transition-colors"
               >
                 Regístrate aquí
               </button>

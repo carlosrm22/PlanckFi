@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useAuthContext } from '../../contexts/AuthContext';
+
 import { useDashboard } from '../../hooks/useDashboard';
 import { StatsCards } from './StatsCards';
 import { RecentTransactions } from './RecentTransactions';
@@ -9,17 +9,14 @@ import { MonthlyChart } from './MonthlyChart';
 import { QuickActions } from './QuickActions';
 
 import { 
-  PlusIcon, 
-  ArrowUpIcon, 
-  ArrowDownIcon,
+  ArrowUpIcon,
   ChartBarIcon,
   ClockIcon,
   FireIcon
 } from '@heroicons/react/24/outline';
 
 export const Dashboard: React.FC = () => {
-  const { user } = useAuthContext();
-  const { stats, loading, error, fetchStats, clearError } = useDashboard();
+  const { stats, loading, error } = useDashboard();
 
   if (loading) {
     return (
