@@ -38,27 +38,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="ios-w-full ios-max-w-md ios-mx-auto"
+      className="ios-w-full ios-max-w-[360px] ios-mx-auto"
     >
-      <div className="ios-card-large ios-relative ios-overflow-hidden">
+      <div className="ios-card ios-relative ios-overflow-hidden ios-rounded-2xl ios-py-6 ios-px-4">
         {/* Decorative gradient background */}
         <div className="ios-absolute ios-inset-0 ios-bg-gradient-to-br ios-from-primary-500/5 ios-to-system-purple/5" />
         
-        <div className="ios-relative ios-z-10 ios-text-center ios-pb-6">
-          <div className="ios-w-10 ios-h-10 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-2xl ios-flex ios-items-center ios-justify-center ios-mx-auto ios-mb-4">
+        <div className="ios-relative ios-z-10 ios-text-center ios-pb-4">
+          <div className="ios-w-10 ios-h-10 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-xl ios-flex ios-items-center ios-justify-center ios-mx-auto ios-mb-2">
             <svg className="ios-icon-tabbar ios-text-white" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="ios-title ios-text-base-900 dark:ios-text-base-dark-100">
+          <h2 className="ios-title ios-text-xl ios-font-bold ios-mb-1 ios-text-base-900 dark:ios-text-base-dark-100">
             Bienvenido de vuelta
           </h2>
-          <p className="ios-caption ios-text-base-500 dark:ios-text-base-dark-500 ios-mt-2">
+          <p className="ios-caption ios-text-base-500 dark:ios-text-base-dark-500 ios-mt-1 ios-mb-2">
             Accede a tu cuenta PlanckFi
           </p>
         </div>
 
-        <div className="ios-relative ios-z-10 ios-space-y-6">
+        <div className="ios-relative ios-z-10 ios-space-y-4">
           {error && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -69,7 +69,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="ios-space-y-4">
+          <form onSubmit={handleSubmit} className="ios-space-y-3">
             <div className="ios-space-y-2">
               <label htmlFor="email" className="ios-block ios-text-sm ios-font-medium ios-text-base-700 dark:ios-text-base-dark-300">
                 Correo Electrónico
@@ -82,7 +82,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
-                  className="ios-input ios-pl-10"
+                  className="ios-input ios-pl-10 ios-py-2"
                   required
                 />
               </div>
@@ -100,7 +100,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="ios-input ios-pl-10 ios-pr-10"
+                  className="ios-input ios-pl-10 ios-pr-10 ios-py-2"
                   required
                 />
                 <button
@@ -109,9 +109,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                   className="ios-absolute ios-right-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-text-base-400 hover:ios-text-base-600 dark:hover:ios-text-base-dark-300 ios-haptic"
                 >
                   {showPassword ? (
-                    <EyeSlashIcon className="ios-w-5 ios-h-5" />
+                    <EyeSlashIcon className="ios-w-5 ios-h-5" width={20} height={20} />
                   ) : (
-                    <EyeIcon className="ios-w-5 ios-h-5" />
+                    <EyeIcon className="ios-w-5 ios-h-5" width={20} height={20} />
                   )}
                 </button>
               </div>
@@ -120,7 +120,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             <motion.button
               type="submit"
               disabled={loading}
-              className="ios-button ios-w-full ios-haptic"
+              className="ios-button ios-w-full ios-haptic ios-py-2"
               whileTap={{ scale: 0.98 }}
             >
               {loading ? (
@@ -148,7 +148,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
           <motion.button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="ios-button-secondary ios-w-full ios-haptic"
+            className="ios-button-secondary ios-w-full ios-haptic ios-py-2"
             whileTap={{ scale: 0.98 }}
           >
             <div className="ios-flex ios-items-center ios-justify-center ios-space-x-2">
