@@ -93,7 +93,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                 Contraseña
               </label>
               <div className="ios-relative">
-                <LockClosedIcon className="ios-absolute ios-left-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-w-5 ios-h-5 ios-text-base-400" />
+                <LockClosedIcon className="ios-absolute ios-left-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-icon-tabbar ios-text-base-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
