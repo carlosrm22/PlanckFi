@@ -46,7 +46,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
         
         <div className="ios-relative ios-z-10 ios-text-center ios-pb-6">
           <div className="ios-w-10 ios-h-10 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-2xl ios-flex ios-items-center ios-justify-center ios-mx-auto ios-mb-4">
-            <svg className="ios-w-6 ios-h-6 ios-text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="ios-icon-tabbar ios-text-white" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
@@ -75,7 +75,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                 Correo Electrónico
               </label>
               <div className="ios-relative">
-                <EnvelopeIcon className="ios-absolute ios-left-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-w-5 ios-h-5 ios-text-base-400" />
+                <EnvelopeIcon className="ios-absolute ios-left-3 ios-top-1/2 ios-transform -ios-translate-y-1/2 ios-icon-tabbar ios-text-base-400" />
                 <input
                   type="email"
                   id="email"
