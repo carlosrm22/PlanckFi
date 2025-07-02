@@ -45,8 +45,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
         <div className="ios-absolute ios-inset-0 ios-bg-gradient-to-br ios-from-primary-500/5 ios-to-system-purple/5" />
         
         <div className="ios-relative ios-z-10 ios-text-center ios-pb-6">
-          <div className="ios-w-16 ios-h-16 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-2xl ios-flex ios-items-center ios-justify-center ios-mx-auto ios-mb-4">
-            <svg className="ios-w-8 ios-h-8 ios-text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="ios-w-10 ios-h-10 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-2xl ios-flex ios-items-center ios-justify-center ios-mx-auto ios-mb-4">
+            <svg className="ios-w-6 ios-h-6 ios-text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>

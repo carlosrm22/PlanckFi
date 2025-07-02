@@ -28,8 +28,8 @@ const HomePageContent: React.FC = () => {
       <header className="ios-nav-bar ios-safe-area-inset-t">
         <div className="ios-container ios-flex ios-items-center ios-justify-between">
           <div className="ios-flex ios-items-center ios-gap-3">
-            <div className="ios-w-10 ios-h-10 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-2xl ios-flex ios-items-center ios-justify-center">
-              <SparklesIcon className="ios-w-6 ios-h-6 ios-text-white" />
+            <div className="ios-w-8 ios-h-8 ios-bg-gradient-to-r ios-from-primary-500 ios-to-system-purple ios-rounded-2xl ios-flex ios-items-center ios-justify-center">
+              <SparklesIcon className="ios-w-5 ios-h-5 ios-text-white" />
             </div>
             <h1 className="ios-headline ios-font-bold ios-text-base-900 dark:ios-text-base-dark-100">PlanckFi</h1>
           </div>
