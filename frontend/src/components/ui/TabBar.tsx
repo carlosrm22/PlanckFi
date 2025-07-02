@@ -2,10 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   HomeIcon, 
-  ChartBarIcon, 
-  PlusCircleIcon, 
-  DocumentTextIcon, 
-  UserIcon 
+  ChartPieIcon, 
+  PlusIcon, 
+  ReceiptRefundIcon, 
+  UserCircleIcon 
 } from '@heroicons/react/24/outline';
 
 interface TabBarProps {
@@ -22,26 +22,26 @@ const tabs = [
   },
   {
     id: 'analytics',
-    label: 'Análisis',
-    icon: ChartBarIcon,
+    label: 'Gastos',
+    icon: ChartPieIcon,
     path: '/analytics'
   },
   {
     id: 'add',
     label: 'Agregar',
-    icon: PlusCircleIcon,
+    icon: PlusIcon,
     path: '/add-transaction'
   },
   {
     id: 'receipts',
     label: 'Recibos',
-    icon: DocumentTextIcon,
+    icon: ReceiptRefundIcon,
     path: '/receipts'
   },
   {
     id: 'profile',
     label: 'Perfil',
-    icon: UserIcon,
+    icon: UserCircleIcon,
     path: '/profile'
   }
 ];
