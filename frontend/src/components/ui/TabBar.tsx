@@ -48,63 +48,45 @@ const tabs = [
 
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
   return (
-    <div className="ios-tab-bar">
-      <div className="flex justify-around items-center px-2">
+    <nav className="ios-tab-bar ios-safe-area-inset-b">
+      <ul className="ios-flex ios-justify-around ios-items-center ios-w-full ios-max-w-full ios-overflow-hidden">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          
           return (
-            <motion.button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ios-haptic ios-no-select ${
-                isActive 
-                  ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
-              whileTap={{ scale: 0.95 }}
-              layout
-            >
-              <motion.div
-                className="relative"
-                layout
-              >
-                <Icon 
-                  className={`w-6 h-6 transition-colors duration-200 ${
-                    isActive ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400'
-                  }`}
-                />
-                {isActive && (
-                  <motion.div
-                    className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"
-                    layoutId="activeIndicator"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.div>
-              
-              <motion.span
-                className={`text-xs font-medium mt-1 transition-colors duration-200 ${
-                  isActive 
-                    ? 'text-blue-500' 
-                    : 'text-gray-500 dark:text-gray-400'
+            <li key={tab.id} className="ios-flex-1 ios-flex ios-justify-center">
+              <button
+                onClick={() => onTabChange(tab.id)}
+                className={`ios-flex ios-flex-col ios-items-center ios-justify-center ios-py-1 ios-px-2 ios-rounded-xl ios-transition-all ios-duration-200 ios-haptic ios-no-select ios-min-w-0 ios-overflow-hidden focus:outline-none ${
+                  isActive
+                    ? 'ios-text-primary-500'
+                    : 'ios-text-base-500 dark:ios-text-base-dark-500'
                 }`}
-                layout
+                aria-label={tab.label}
               >
-                {tab.label}
-              </motion.span>
-            </motion.button>
+                <Icon
+                  className={`ios-w-7 ios-h-7 ios-mb-0.5 ios-transition-colors ios-duration-200 ${
+                    isActive ? 'ios-text-primary-500' : 'ios-text-base-500 dark:ios-text-base-dark-500'
+                  }`}
+                  aria-hidden="true"
+                />
+                <span
+                  className={`ios-text-xs ios-font-medium ios-truncate ios-max-w-full ${
+                    isActive ? 'ios-text-primary-500' : 'ios-text-base-500 dark:ios-text-base-dark-500'
+                  }`}
+                  style={{lineHeight: '1.1'}}
+                >
+                  {tab.label}
+                </span>
+              </button>
+            </li>
           );
         })}
-      </div>
+      </ul>
       
       {/* Indicador de tab activo */}
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+        className="ios-absolute ios-bottom-0 ios-left-0 ios-right-0 ios-h-0.5 ios-bg-primary-500"
         layoutId="tabIndicator"
         initial={false}
         transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -113,7 +95,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
           x: `${(tabs.findIndex(tab => tab.id === activeTab) * 100) / tabs.length}%`
         }}
       />
-    </div>
+    </nav>
   );
 };
 

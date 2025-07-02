@@ -195,6 +195,31 @@ body {
   padding-right: var(--safe-area-inset-right);
 }
 
+/* Prevenir scroll horizontal */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Contenedores principales */
+.ios-container {
+  max-width: 100%;
+  width: 100%;
+  padding-left: var(--ios-spacing-4);
+  padding-right: var(--ios-spacing-4);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.ios-container-wide {
+  max-width: 100%;
+  width: 100%;
+  padding-left: var(--ios-spacing-4);
+  padding-right: var(--ios-spacing-4);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
 /* iOS 18 Container Components */
 .ios-container {
   max-width: 100%;
@@ -302,8 +327,8 @@ body {
 
 /* iOS 18 Navigation Bar */
 .ios-nav-bar {
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--ios-separator);
   padding-top: var(--safe-area-inset-top);
   min-height: var(--nav-bar-height);
@@ -315,12 +340,18 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: background-color 0.2s;
 }
 
-.ios-nav-bar-dark {
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--ios-separator);
+@media (prefers-color-scheme: dark) {
+  .ios-nav-bar {
+    background-color: rgba(18, 18, 20, 0.82);
+    border-bottom: 1px solid var(--ios-opaque-separator);
+  }
 }
 
 .ios-nav-bar-large {
@@ -335,8 +366,8 @@ body {
 .ios-tab-bar {
   height: var(--tab-bar-height);
   padding-bottom: var(--safe-area-inset-bottom);
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px);
   border-top: 1px solid var(--ios-separator);
   display: flex;
   align-items: center;
@@ -346,12 +377,18 @@ body {
   left: 0;
   right: 0;
   z-index: 100;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: background-color 0.2s;
 }
 
-.ios-tab-bar-dark {
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--ios-separator);
+@media (prefers-color-scheme: dark) {
+  .ios-tab-bar {
+    background-color: rgba(18, 18, 20, 0.82);
+    border-top: 1px solid var(--ios-opaque-separator);
+  }
 }
 
 /* iOS 18 List Components */
@@ -909,62 +946,6 @@ img {
   overflow-y: auto;
 }
 
-/* iOS 18 Navigation Bar */
-.ios-nav-bar {
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--ios-separator);
-  padding-top: var(--safe-area-inset-top);
-  min-height: var(--nav-bar-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: var(--ios-spacing-4);
-  padding-right: var(--ios-spacing-4);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-}
-
-.ios-nav-bar-dark {
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--ios-separator);
-}
-
-.ios-nav-bar-large {
-  min-height: var(--nav-bar-height-large);
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding-bottom: var(--ios-spacing-3);
-}
-
-/* iOS 18 Tab Bar */
-.ios-tab-bar {
-  height: var(--tab-bar-height);
-  padding-bottom: var(--safe-area-inset-bottom);
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--ios-separator);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-}
-
-.ios-tab-bar-dark {
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--ios-separator);
-}
-
 /* iOS 18 Avatar */
 .ios-avatar {
   width: 60px;
@@ -1425,4 +1406,25 @@ button:focus-visible {
     background-color: #f9f9f9;
     color: #213547;
   }
+}
+
+/* Refuerzo global para evitar desbordes */
+html, body, #root, .ios-app, .ios-main, .ios-container, .ios-container-wide, .ios-card, .ios-card-large {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box;
+}
+
+/* Truncado y break-words en textos largos */
+.ios-truncate, .ios-headline, .ios-title, .ios-body, .ios-caption, h1, h2, h3, h4, h5, h6, p, span, label, input, button {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-overflow: ellipsis;
+  white-space: pre-line;
+  max-width: 100%;
+}
+
+/* Para grids y flex que puedan crecer */
+.ios-flex, .ios-grid, .grid, .flex {
+  min-width: 0 !important;
 } 
