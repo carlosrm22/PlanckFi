@@ -4,7 +4,7 @@ import {
   HomeIcon, 
   ChartBarIcon, 
   PlusCircleIcon, 
-  ReceiptIcon, 
+  DocumentTextIcon, 
   UserIcon 
 } from '@heroicons/react/24/outline';
 
@@ -35,7 +35,7 @@ const tabs = [
   {
     id: 'receipts',
     label: 'Recibos',
-    icon: ReceiptIcon,
+    icon: DocumentTextIcon,
     path: '/receipts'
   },
   {
