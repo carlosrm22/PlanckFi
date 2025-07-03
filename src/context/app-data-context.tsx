@@ -70,6 +70,7 @@ interface AppDataContextType {
   addMultipleTransactions: (transactions: Omit<Transaction, 'id'>[]) => Promise<void>;
   editTransaction: (id: string, updatedTransaction: Omit<Transaction, 'id'>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
+  deleteMultipleTransactions: (ids: string[]) => Promise<void>;
   accounts: Account[];
   addAccount: (account: Omit<Account, 'id'>) => Promise<void>;
   editAccount: (id: string, updatedAccount: Omit<Account, 'id'>) => Promise<void>;
@@ -393,6 +394,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
     toast({ title: 'Éxito', description: 'Transacción eliminada.' });
   };
+
+  const deleteMultipleTransactions = async (ids: string[]) => {
+    if (user && db) {
+        const batch = writeBatch(db);
+        ids.forEach(id => {
+            const docRef = doc(db, 'users', user.uid, 'transactions', id);
+            batch.delete(docRef);
+        });
+        await batch.commit();
+        setFbTransactions(prev => prev.filter(t => !ids.includes(t.id)));
+    } else {
+        setLocalTransactions(prev => prev.filter(t => !ids.includes(t.id)));
+    }
+  };
   
   const addAccount = async (account: Omit<Account, 'id'>) => {
     if (user && db) {
@@ -480,6 +495,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     addMultipleTransactions,
     editTransaction,
     deleteTransaction,
+    deleteMultipleTransactions,
     accounts,
     addAccount,
     editAccount,

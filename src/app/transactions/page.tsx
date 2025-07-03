@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search, Plus, FileUp, Loader2, FileDown, FileText } from 'lucide-react';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search, Plus, FileUp, Loader2, FileDown, FileText, Trash } from 'lucide-react';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -56,6 +56,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +106,7 @@ const categoryFormSchema = z.object({
 export default function TransactionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -114,6 +116,7 @@ export default function TransactionsPage() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -121,7 +124,7 @@ export default function TransactionsPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode, addMultipleTransactions, accounts, addAccount } = useAppData();
+  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode, addMultipleTransactions, accounts, addAccount, deleteMultipleTransactions } = useAppData();
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
@@ -197,6 +200,10 @@ export default function TransactionsPage() {
         });
     }
   }, [editingTransaction, form]);
+  
+  useEffect(() => {
+    setSelectedRows([]);
+  }, [searchQuery, monthFilter]);
 
 
   const transactionType = form.watch('type');
@@ -293,6 +300,18 @@ export default function TransactionsPage() {
         deleteTransaction(transactionToDelete);
         setDeleteConfirmOpen(false);
         setTransactionToDelete(null);
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedRows.length > 0) {
+        await deleteMultipleTransactions(selectedRows);
+        setBulkDeleteConfirmOpen(false);
+        toast({
+            title: "¡Éxito!",
+            description: `${selectedRows.length} ${selectedRows.length > 1 ? 'transacciones eliminadas' : 'transacción eliminada'}.`
+        });
+        setSelectedRows([]);
     }
   }
   
@@ -420,7 +439,7 @@ export default function TransactionsPage() {
 
 
       for (const row of rows) {
-          const values = row.trim().split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          const values = row.trim().split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
           if (values.length !== 6) {
               skippedRows++;
               continue;
@@ -451,7 +470,12 @@ export default function TransactionsPage() {
               skippedRows++;
               continue; // Skip if we can't create the category
             }
-          } else if (type === 'income' && category !== 'Ingresos') {
+          } else if (type === 'income' && category.toLowerCase() !== 'ingresos') {
+            toast({
+                title: 'Categoría Inválida',
+                description: `La categoría para ingresos debe ser 'Ingresos'. Se ignoró la fila para '${description}'.`,
+                variant: 'destructive'
+            });
             skippedRows++;
             continue;
           }
@@ -909,10 +933,28 @@ export default function TransactionsPage() {
               </Select>
             </div>
           </div>
+          {selectedRows.length > 0 && (
+            <div className="flex items-center gap-4 mb-4 p-3 rounded-md border bg-secondary/50">
+                <p className="text-sm font-medium flex-1">{selectedRows.length} de {filteredTransactions.length} seleccionadas</p>
+                <Button variant="destructive" onClick={() => setBulkDeleteConfirmOpen(true)}>
+                    <Trash className="mr-2 h-4 w-4" />
+                    Eliminar Seleccionadas
+                </Button>
+            </div>
+          )}
           <div className="border rounded-md overflow-x-auto">
             <Table>
                 <TableHeader>
                 <TableRow>
+                    <TableHead className="w-[40px]">
+                        <Checkbox
+                            checked={filteredTransactions.length > 0 && selectedRows.length === filteredTransactions.length}
+                            onCheckedChange={(checked) => {
+                                setSelectedRows(checked ? filteredTransactions.map((t) => t.id) : []);
+                            }}
+                            aria-label="Seleccionar todo"
+                        />
+                    </TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Categoría</TableHead>
@@ -927,70 +969,81 @@ export default function TransactionsPage() {
                     filteredTransactions.map((transaction) => {
                        const accountName = transaction.account ? accounts.find(a => a.name === transaction.account)?.name || transaction.account : '';
                        return (
-                        <TableRow key={transaction.id}>
-                        <TableCell>
-                            {format(new Date(transaction.date), 'dd MMMM, yyyy', {
-                            locale: es,
-                            })}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                            {transaction.description}
-                        </TableCell>
-                        <TableCell>
-                            <Badge variant="outline">{transaction.category}</Badge>
-                        </TableCell>
-                        <TableCell>
-                           {accountName || <span className="text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell>
-                            {transaction.receiptImageUrl ? (
-                                <a href={transaction.receiptImageUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                                <Paperclip className="h-5 w-5" />
-                                </a>
-                            ) : (
-                                <span className="text-muted-foreground">-</span>
-                            )}
-                        </TableCell>
-                        <TableCell
-                            className={cn(
-                            'text-right font-semibold',
-                            transaction.amount > 0
-                                ? 'text-accent'
-                                : 'text-card-foreground'
-                            )}
-                        >
-                            {transaction.amount > 0 ? '+' : ''}
-                            {new Intl.NumberFormat('es-MX', {
-                            style: 'currency',
-                            currency: 'MXN',
-                            }).format(transaction.amount)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                        <span className="sr-only">Abrir menú</span>
-                                        <MoreHorizontal className="h-4 w-4"/>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => openEditDialog(transaction)}>
-                                        <Pencil className="mr-2 h-4 w-4" />
-                                        Editar
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => openDeleteDialog(transaction.id)} className="text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
+                        <TableRow key={transaction.id} data-state={selectedRows.includes(transaction.id) ? "selected" : ""}>
+                            <TableCell>
+                                <Checkbox
+                                    checked={selectedRows.includes(transaction.id)}
+                                    onCheckedChange={(checked) => {
+                                        setSelectedRows((prev) =>
+                                            checked ? [...prev, transaction.id] : prev.filter((id) => id !== transaction.id)
+                                        );
+                                    }}
+                                    aria-label="Seleccionar fila"
+                                />
+                            </TableCell>
+                            <TableCell>
+                                {format(new Date(transaction.date), 'dd MMMM, yyyy', {
+                                locale: es,
+                                })}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                                {transaction.description}
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant="outline">{transaction.category}</Badge>
+                            </TableCell>
+                            <TableCell>
+                            {accountName || <span className="text-muted-foreground">-</span>}
+                            </TableCell>
+                            <TableCell>
+                                {transaction.receiptImageUrl ? (
+                                    <a href={transaction.receiptImageUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                    <Paperclip className="h-5 w-5" />
+                                    </a>
+                                ) : (
+                                    <span className="text-muted-foreground">-</span>
+                                )}
+                            </TableCell>
+                            <TableCell
+                                className={cn(
+                                'text-right font-semibold',
+                                transaction.amount > 0
+                                    ? 'text-accent'
+                                    : 'text-card-foreground'
+                                )}
+                            >
+                                {transaction.amount > 0 ? '+' : ''}
+                                {new Intl.NumberFormat('es-MX', {
+                                style: 'currency',
+                                currency: 'MXN',
+                                }).format(transaction.amount)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Abrir menú</span>
+                                            <MoreHorizontal className="h-4 w-4"/>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => openEditDialog(transaction)}>
+                                            <Pencil className="mr-2 h-4 w-4" />
+                                            Editar
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => openDeleteDialog(transaction.id)} className="text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
                         </TableRow>
                        )
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                         No se encontraron transacciones.
                       </TableCell>
                     </TableRow>
@@ -1012,6 +1065,21 @@ export default function TransactionsPage() {
               <AlertDialogFooter>
                   <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancelar</AlertDialogCancel>
                   <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+
+       <AlertDialog open={bulkDeleteConfirmOpen} onOpenChange={setBulkDeleteConfirmOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      Esta acción no se puede deshacer. Esto eliminará permanentemente {selectedRows.length} transacciones.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleBulkDelete}>Eliminar</AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
