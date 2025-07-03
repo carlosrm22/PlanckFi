@@ -157,12 +157,12 @@ export default function TransactionsPage() {
       transactionsToFilter = transactionsToFilter.filter(t =>
         t.description.toLowerCase().includes(lowercasedQuery) ||
         t.category.toLowerCase().includes(lowercasedQuery) ||
-        t.account?.toLowerCase().includes(lowercasedQuery)
+        (t.account && accounts.find(a => a.name === t.account)?.name.toLowerCase().includes(lowercasedQuery))
       );
     }
 
     return transactionsToFilter;
-  }, [transactions, monthFilter, searchQuery]);
+  }, [transactions, monthFilter, searchQuery, accounts]);
 
   const monthOptions = useMemo(() => {
     const options = [{ value: 'all', label: 'Todos los meses' }];
@@ -330,12 +330,13 @@ export default function TransactionsPage() {
     const csvRows = [
       headers.join(','),
       ...filteredTransactions.map(t => {
-        const date = format(new Date(t.date), 'yyyy-MM-dd');
+        const date = format(new Date(t.date), 'dd-MM-yyyy');
         const description = `"${t.description.replace(/"/g, '""')}"`;
         const category = t.category;
         const type = t.type === 'income' ? 'Ingreso' : 'Gasto';
         const amount = t.amount;
-        const account = t.account ? `"${t.account.replace(/"/g, '""')}"` : '';
+        const accountName = t.account ? accounts.find(a => a.name === t.account)?.name || '' : '';
+        const account = accountName ? `"${accountName.replace(/"/g, '""')}"` : '';
         return [date, description, category, type, amount, account].join(',');
       })
     ];
@@ -358,9 +359,9 @@ export default function TransactionsPage() {
   const handleDownloadTemplate = () => {
     const headers = 'Fecha,Descripción,Categoría,Tipo,Monto,Cuenta';
     const exampleRows = [
-      '2024-07-26,Compra en supermercado,Comestibles,Gasto,85.40,Cuenta de Prueba',
-      '2024-07-28,Salario,Ingresos,Ingreso,2000.00,Cuenta de Prueba',
-      '2024-07-29,Suscripción a Spotify,Entretenimiento,Gasto,10.99,Cuenta de Prueba'
+      '26-07-2024,Compra en supermercado,Comestibles,Gasto,85.40,Cuenta de Prueba',
+      '28-07-2024,Salario,Ingresos,Ingreso,2000.00,Cuenta de Prueba',
+      '29-07-2024,Suscripción a Spotify,Entretenimiento,Gasto,10.99,Cuenta de Prueba'
     ];
     const csvContent = [headers, ...exampleRows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -422,7 +423,10 @@ export default function TransactionsPage() {
           const [dateStr, description, category, typeStr, amountStr, accountStr] = values;
           
           const amount = parseFloat(amountStr);
-          const date = new Date(dateStr);
+          const dateParts = dateStr.trim().split('-');
+          // Re-assemble as yyyy-mm-dd which is reliably parsed
+          const date = dateParts.length === 3 ? new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`) : new Date(NaN);
+        
           const type = typeStr.trim().toLowerCase() === 'ingreso' ? 'income' : 'expense';
           const account = accountStr?.trim();
           
@@ -838,7 +842,7 @@ export default function TransactionsPage() {
                 <FileText className="h-4 w-4" />
                 <AlertTitle>¿Quieres importar transacciones?</AlertTitle>
                 <AlertDescription>
-                    Usa un archivo CSV con las columnas: Fecha, Descripción, Categoría, Tipo, Monto, Cuenta. Descarga nuestra plantilla para asegurar el formato correcto.
+                    Usa un archivo CSV con las columnas: Fecha (en formato DD-MM-AAAA), Descripción, Categoría, Tipo, Monto, Cuenta. Descarga nuestra plantilla para asegurar el formato correcto.
                 </AlertDescription>
             </Alert>
           <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
@@ -882,7 +886,9 @@ export default function TransactionsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction) => (
+                    filteredTransactions.map((transaction) => {
+                       const accountName = transaction.account ? accounts.find(a => a.name === transaction.account)?.name || transaction.account : '';
+                       return (
                         <TableRow key={transaction.id}>
                         <TableCell>
                             {format(new Date(transaction.date), 'dd MMMM, yyyy', {
@@ -896,7 +902,7 @@ export default function TransactionsPage() {
                             <Badge variant="outline">{transaction.category}</Badge>
                         </TableCell>
                         <TableCell>
-                           {transaction.account || <span className="text-muted-foreground">-</span>}
+                           {accountName || <span className="text-muted-foreground">-</span>}
                         </TableCell>
                         <TableCell>
                             {transaction.receiptImageUrl ? (
@@ -942,7 +948,8 @@ export default function TransactionsPage() {
                             </DropdownMenu>
                         </TableCell>
                         </TableRow>
-                    ))
+                       )
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
