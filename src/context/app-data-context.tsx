@@ -151,6 +151,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDocSnap = await getDoc(userDocRef);
+        const defaultPhotoURL = 'https://firebasestorage.googleapis.com/v0/b/planckfi.firebasestorage.app/o/images%2FPlanckFi.jpg?alt=media&token=05df2e8d-44ed-4e3f-8c5a-661fbc8b81cf';
 
         if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
@@ -158,12 +159,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 displayName: userData.name || '',
-                photoURL: userData.photoURL || null,
+                photoURL: userData.photoURL || defaultPhotoURL,
             });
         } else {
             console.warn("User document not found in Firestore, creating one.");
             const defaultName = firebaseUser.email?.split('@')[0] || 'Nuevo Usuario';
-            const defaultPhotoURL = 'https://firebasestorage.googleapis.com/v0/b/planckfi.firebasestorage.app/o/images%2FPlanckFi.jpg?alt=media&token=05df2e8d-44ed-4e3f-8c5a-661fbc8b81cf';
             await setDoc(userDocRef, {
                 name: defaultName,
                 email: firebaseUser.email,
