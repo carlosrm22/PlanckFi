@@ -121,7 +121,7 @@ export default function TransactionsPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode, addMultipleTransactions, accounts } = useAppData();
+  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode, addMultipleTransactions, accounts, addAccount } = useAppData();
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
@@ -411,16 +411,22 @@ export default function TransactionsPage() {
 
       const transactionsToImport: Omit<Transaction, 'id'>[] = [];
       let skippedRows = 0;
-      const allCategoryNames = categories.map(c => c.name);
+      let createdCategories = 0;
+      let createdAccounts = 0;
+
+      // Use Sets for efficient lookups and to track what's been created in this batch
+      const existingCategoryNames = new Set(categories.map(c => c.name.toLowerCase()));
+      const existingAccountNames = new Set(accounts.map(a => a.name.toLowerCase()));
+
 
       for (const row of rows) {
-          const values = row.trim().split(',');
+          const values = row.trim().split(',').map(v => v.trim().replace(/^"|"$/g, ''));
           if (values.length !== 6) {
               skippedRows++;
               continue;
           }
 
-          const [dateStr, description, category, typeStr, amountStr, accountStr] = values;
+          const [dateStr, description, category, typeStr, amountStr, accountName] = values;
           
           const amount = parseFloat(amountStr);
           const dateParts = dateStr.trim().split('-');
@@ -428,37 +434,69 @@ export default function TransactionsPage() {
           const date = dateParts.length === 3 ? new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`) : new Date(NaN);
         
           const type = typeStr.trim().toLowerCase() === 'ingreso' ? 'income' : 'expense';
-          const account = accountStr?.trim();
           
-          if (
-            isNaN(amount) ||
-            isNaN(date.getTime()) ||
-            !description ||
-            !category ||
-            !typeStr ||
-            (type === 'expense' && !allCategoryNames.includes(category)) ||
-            (type === 'income' && category !== 'Ingresos')
-          ) {
+          if ( isNaN(amount) || isNaN(date.getTime()) || !description || !category || !typeStr ) {
             skippedRows++;
             continue;
           }
 
+          // Handle Category Creation
+          if (type === 'expense' && !existingCategoryNames.has(category.toLowerCase())) {
+            try {
+              await addCategory(category);
+              existingCategoryNames.add(category.toLowerCase());
+              createdCategories++;
+            } catch (error) {
+              console.error(`Failed to create category "${category}":`, error);
+              skippedRows++;
+              continue; // Skip if we can't create the category
+            }
+          } else if (type === 'income' && category !== 'Ingresos') {
+            skippedRows++;
+            continue;
+          }
+
+          // Handle Account Creation
+          if (accountName && !existingAccountNames.has(accountName.toLowerCase())) {
+            try {
+              await addAccount({
+                name: accountName,
+                type: 'Checking', // Default type
+                provider: 'Importado de CSV',
+                balance: 0,
+                lastFour: '0000',
+              });
+              existingAccountNames.add(accountName.toLowerCase());
+              createdAccounts++;
+            } catch (error) {
+              console.error(`Failed to create account "${accountName}":`, error);
+            }
+          }
+
           transactionsToImport.push({
               date: date.toISOString(),
-              description: description.replace(/"/g, ''),
+              description: description,
               category,
               type,
               amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
-              account: account || undefined,
+              account: accountName || undefined,
           });
       }
 
       if (transactionsToImport.length > 0) {
         try {
           await addMultipleTransactions(transactionsToImport);
+          let toastDescription = `Se importaron ${transactionsToImport.length} transacciones.`;
+          const details = [];
+          if (createdCategories > 0) details.push(`${createdCategories} ${createdCategories > 1 ? 'categorías nuevas' : 'categoría nueva'}`);
+          if (createdAccounts > 0) details.push(`${createdAccounts} ${createdAccounts > 1 ? 'cuentas nuevas' : 'cuenta nueva'}`);
+          
+          if (details.length > 0) toastDescription += ` Se crearon ${details.join(' y ')}.`;
+          if (skippedRows > 0) toastDescription += ` ${skippedRows} ${skippedRows > 1 ? 'filas fueron ignoradas' : 'fila fue ignorada'}.`;
+
           toast({
               title: "Importación Completada",
-              description: `Se importaron ${transactionsToImport.length} transacciones. ${skippedRows > 0 ? `${skippedRows} filas fueron ignoradas.` : ''}`
+              description: toastDescription
           });
         } catch (error) {
            console.error("Error al importar transacciones", error);
@@ -1012,3 +1050,5 @@ export default function TransactionsPage() {
     </AppShell>
   );
 }
+
+    
