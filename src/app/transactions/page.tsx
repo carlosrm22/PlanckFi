@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { format } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, Download, FileSpreadsheet, FileText, Search } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -110,6 +110,9 @@ export default function TransactionsPage() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   
+  const [searchQuery, setSearchQuery] = useState('');
+  const [monthFilter, setMonthFilter] = useState('all');
+
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -120,6 +123,38 @@ export default function TransactionsPage() {
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
   });
+  
+  const filteredTransactions = useMemo(() => {
+    let transactionsToFilter = transactions;
+
+    if (monthFilter !== 'all') {
+      transactionsToFilter = transactionsToFilter.filter(t => 
+        format(new Date(t.date), 'yyyy-MM') === monthFilter
+      );
+    }
+
+    if (searchQuery) {
+      const lowercasedQuery = searchQuery.toLowerCase();
+      transactionsToFilter = transactionsToFilter.filter(t =>
+        t.description.toLowerCase().includes(lowercasedQuery) ||
+        t.category.toLowerCase().includes(lowercasedQuery)
+      );
+    }
+
+    return transactionsToFilter;
+  }, [transactions, monthFilter, searchQuery]);
+
+  const monthOptions = useMemo(() => {
+    const options = [{ value: 'all', label: 'Todos los meses' }];
+    const today = new Date();
+    for (let i = 0; i < 12; i++) {
+        const date = subMonths(today, i);
+        const value = format(date, 'yyyy-MM');
+        const label = format(date, 'MMMM yyyy', { locale: es });
+        options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+    }
+    return options;
+  }, []);
 
   useEffect(() => {
     if (editingTransaction) {
@@ -264,7 +299,7 @@ export default function TransactionsPage() {
     const headers = ['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto'];
     const csvRows = [
       headers.join(','),
-      ...transactions.map(t => {
+      ...filteredTransactions.map(t => {
         const date = format(new Date(t.date), 'yyyy-MM-dd');
         const description = `"${t.description.replace(/"/g, '""')}"`;
         const category = t.category;
@@ -279,7 +314,7 @@ export default function TransactionsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'transacciones.csv');
+    link.setAttribute('download', 'PlanckFi_transacciones.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -293,7 +328,7 @@ export default function TransactionsPage() {
     const tableColumn = ["Fecha", "Descripción", "Categoría", "Tipo", "Monto"];
     const tableRows: (string | number)[][] = [];
 
-    transactions.forEach(t => {
+    filteredTransactions.forEach(t => {
       const transactionData = [
         format(new Date(t.date), 'yyyy-MM-dd'),
         t.description,
@@ -310,7 +345,7 @@ export default function TransactionsPage() {
         startY: 20,
     });
     
-    doc.save('transacciones.pdf');
+    doc.save('PlanckFi_transacciones.pdf');
   };
 
 
@@ -318,17 +353,17 @@ export default function TransactionsPage() {
     <AppShell>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="grid gap-1">
               <CardTitle>Transacciones</CardTitle>
               <CardDescription>
                 Una lista de tus transacciones recientes.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full md:w-auto">
                 <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) setEditingTransaction(null); }}>
                 <DialogTrigger asChild>
-                    <Button>
+                    <Button className="w-full sm:w-auto">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Añadir Transacción
                     </Button>
@@ -572,78 +607,114 @@ export default function TransactionsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Recibo</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>
-                    {format(new Date(transaction.date), 'dd MMMM, yyyy', {
-                      locale: es,
-                    })}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {transaction.description}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{transaction.category}</Badge>
-                  </TableCell>
-                   <TableCell>
-                      {transaction.receiptImageUrl ? (
-                        <a href={transaction.receiptImageUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                          <Paperclip className="h-5 w-5" />
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      'text-right font-semibold',
-                      transaction.amount > 0
-                        ? 'text-emerald-600'
-                        : 'text-card-foreground'
-                    )}
-                  >
-                    {transaction.amount > 0 ? '+' : ''}
-                    {new Intl.NumberFormat('es-ES', {
-                      style: 'currency',
-                      currency: 'USD',
-                    }).format(transaction.amount)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Abrir menú</span>
-                                <MoreHorizontal className="h-4 w-4"/>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditDialog(transaction)}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openDeleteDialog(transaction.id)} className="text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Eliminar
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+            <div className="relative w-full sm:w-auto sm:flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar por descripción o categoría..."
+                className="w-full pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="w-full sm:w-auto">
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filtrar por mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="border rounded-md">
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Descripción</TableHead>
+                    <TableHead>Categoría</TableHead>
+                    <TableHead>Recibo</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.length > 0 ? (
+                    filteredTransactions.map((transaction) => (
+                        <TableRow key={transaction.id}>
+                        <TableCell>
+                            {format(new Date(transaction.date), 'dd MMMM, yyyy', {
+                            locale: es,
+                            })}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                            {transaction.description}
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant="outline">{transaction.category}</Badge>
+                        </TableCell>
+                        <TableCell>
+                            {transaction.receiptImageUrl ? (
+                                <a href={transaction.receiptImageUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                <Paperclip className="h-5 w-5" />
+                                </a>
+                            ) : (
+                                <span className="text-muted-foreground">-</span>
+                            )}
+                        </TableCell>
+                        <TableCell
+                            className={cn(
+                            'text-right font-semibold',
+                            transaction.amount > 0
+                                ? 'text-emerald-600'
+                                : 'text-card-foreground'
+                            )}
+                        >
+                            {transaction.amount > 0 ? '+' : ''}
+                            {new Intl.NumberFormat('es-ES', {
+                            style: 'currency',
+                            currency: 'USD',
+                            }).format(transaction.amount)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Abrir menú</span>
+                                        <MoreHorizontal className="h-4 w-4"/>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => openEditDialog(transaction)}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Editar
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openDeleteDialog(transaction.id)} className="text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Eliminar
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                        </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        No se encontraron transacciones.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
