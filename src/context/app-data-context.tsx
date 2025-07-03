@@ -141,7 +141,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [fbAccounts, setFbAccounts] = useState<Account[]>([]);
   const [fbTransactions, setFbTransactions] = useState<Transaction[]>([]);
   const [fbPendingPayments, setFbPendingPayments] = useState<PendingPayment[]>([]);
-  const [fbBudgets, setFbBudgets] = useState<BudgetGoal[]>([]);
+  const [fbBudgets, setFbBudgets] = useState<Omit<BudgetGoal, 'spent'>[]>([]);
 
   // Auth Effect
   useEffect(() => {
@@ -204,7 +204,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             setFbCategories(categoriesData.map(c => ({...c, icon: iconMap[c.icon as keyof typeof iconMap] || Tag })));
             setFbAccounts(accountsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Account)));
             setFbPendingPayments(pendingPaymentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PendingPayment)));
-            setFbBudgets(budgetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), icon: iconMap[doc.data().icon as keyof typeof iconMap] || Tag } as BudgetGoal)));
+            setFbBudgets(budgetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), icon: iconMap[doc.data().icon as keyof typeof iconMap] || Tag } as Omit<BudgetGoal, 'spent'>)));
             
             const transactionsData = transactionsSnapshot.docs.map(doc => {
                 const data = doc.data();
@@ -289,6 +289,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const transactions = isDemoMode ? localTransactions : fbTransactions;
   const pendingPayments = isDemoMode ? localPendingPayments : fbPendingPayments;
 
+  const processedBudgets: BudgetGoal[] = useMemo(() => {
+    const baseBudgets: Omit<BudgetGoal, 'spent'>[] = isDemoMode 
+        ? localBudgets.map((b,i) => ({ ...b, id: `bud-${i}`})) 
+        : fbBudgets;
+
+    return baseBudgets.map(budget => {
+      const currentMonth = format(new Date(), 'yyyy-MM');
+      const spent = transactions
+        .filter(t => t.category === budget.category && t.type === 'expense' && format(new Date(t.date), 'yyyy-MM') === currentMonth)
+        .reduce((acc, t) => acc + Math.abs(t.amount), 0);
+      return { ...budget, spent };
+    });
+  }, [isDemoMode, localBudgets, fbBudgets, transactions]);
+
   // --- CRUD Operations ---
   const addCategory = async (name: string) => {
     if(categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
@@ -322,17 +336,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }
   
   const addBudget = async (budget: Omit<BudgetGoal, 'id' | 'spent' | 'color'>) => {
-    const existingBudgets = user ? fbBudgets : localBudgets;
-    if (existingBudgets.some(b => b.category === budget.category)) {
-        toast({ title: 'Error', description: 'Ya existe un presupuesto para esta categoría.', variant: 'destructive' });
-        return;
+    if (processedBudgets.some(b => b.category === budget.category)) {
+      toast({ title: 'Error', description: 'Ya existe un presupuesto para esta categoría.', variant: 'destructive' });
+      return;
     }
-    const newBudget = { ...budget, color: `var(--chart-${(existingBudgets.length % 5) + 1})` };
+    
+    // Convert the icon component to its string name for Firestore
+    const iconName = Object.keys(iconMap).find(key => iconMap[key as keyof typeof iconMap] === budget.icon) || 'Tag';
+    
+    const newBudgetForFirestore = {
+      category: budget.category,
+      budgeted: budget.budgeted,
+      icon: iconName,
+      color: `var(--chart-${((isDemoMode ? localBudgets.length : fbBudgets.length) % 5) + 1})`
+    };
+
     if(user && db) {
-        const docRef = await addDoc(collection(db, 'users', user.uid, 'budgets'), newBudget);
-        setFbBudgets(prev => [...prev, { ...newBudget, id: docRef.id, spent: 0 }]);
+      const docRef = await addDoc(collection(db, 'users', user.uid, 'budgets'), newBudgetForFirestore);
+      // Add to local state with the component icon for rendering
+      const newBudgetForState = { ...newBudgetForFirestore, id: docRef.id, icon: budget.icon };
+      setFbBudgets(prev => [...prev, newBudgetForState]);
     } else {
-        setLocalBudgets(prev => [...prev, newBudget]);
+      // Demo mode
+      const newBudgetForState = { ...budget, color: newBudgetForFirestore.color };
+      setLocalBudgets(prev => [...prev, newBudgetForState]);
     }
   };
 
@@ -463,20 +490,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
   };
 
-
-  const processedBudgets = useMemo(() => {
-    const baseBudgets = isDemoMode 
-        ? localBudgets.map((b,i) => ({ ...b, id: `bud-${i}`})) 
-        : fbBudgets;
-
-    return baseBudgets.map(budget => {
-      const currentMonth = format(new Date(), 'yyyy-MM');
-      const spent = transactions
-        .filter(t => t.category === budget.category && t.type === 'expense' && format(new Date(t.date), 'yyyy-MM') === currentMonth)
-        .reduce((acc, t) => acc + Math.abs(t.amount), 0);
-      return { ...budget, spent };
-    });
-  }, [isDemoMode, localBudgets, fbBudgets, transactions]);
   
   if (!isConfigured) return <FirebaseNotConfigured />;
   if (loading) return <GlobalLoader />;
