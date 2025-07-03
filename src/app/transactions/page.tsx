@@ -122,6 +122,14 @@ export default function TransactionsPage() {
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
+    defaultValues: {
+        description: '',
+        amount: '' as any,
+        date: new Date(),
+        type: 'expense',
+        category: '',
+        receiptImageUrl: undefined,
+    },
   });
 
   const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
@@ -788,7 +796,3 @@ export default function TransactionsPage() {
     </AppShell>
   );
 }
-
-    
-
-    
