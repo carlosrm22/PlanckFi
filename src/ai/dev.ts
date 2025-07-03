@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/savings-suggestions.ts';
 import '@/ai/flows/scan-receipt-flow.ts';
+import '@/ai/flows/budget-suggestions-flow.ts';

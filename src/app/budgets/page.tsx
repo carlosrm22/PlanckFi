@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/form";
 import { Plus, PlusCircle } from "lucide-react";
 import { useAppData } from "@/context/app-data-context";
+import { BudgetExplanation } from "@/components/budgets/budget-explanation";
+import { AIBudgetAssistant } from "@/components/budgets/ai-budget-assistant";
 
 const budgetFormSchema = z.object({
   category: z.string({ required_error: "Por favor, selecciona una categoría." }),
@@ -98,129 +100,133 @@ export default function BudgetsPage() {
 
   return (
     <AppShell>
-      <div className="grid gap-6">
-        <div className="flex items-center justify-between">
+      <div className="grid gap-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="grid gap-1">
             <h1 className="text-2xl font-bold">Presupuestos</h1>
             <p className="text-muted-foreground">
               Gestiona tus metas de gasto mensuales.
             </p>
           </div>
-          <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Crear Presupuesto
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Crear nuevo presupuesto</DialogTitle>
-                <DialogDescription>
-                  Establece una nueva meta de gasto para una categoría.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...budgetForm}>
-                <form
-                  onSubmit={budgetForm.handleSubmit(onBudgetSubmit)}
-                  className="space-y-4 pt-4"
-                >
-                    <FormField
-                      control={budgetForm.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Categoría</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecciona una categoría" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {budgetCategories.map((category) => (
-                                  <SelectItem
-                                    key={category.name}
-                                    value={category.name}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <category.icon className="h-4 w-4" />
-                                      {category.name}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+          <div className="flex gap-2 w-full md:w-auto">
+            <AIBudgetAssistant />
+            <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full md:w-auto">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Crear Manualmente
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Crear nuevo presupuesto</DialogTitle>
+                  <DialogDescription>
+                    Establece una nueva meta de gasto para una categoría.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...budgetForm}>
+                  <form
+                    onSubmit={budgetForm.handleSubmit(onBudgetSubmit)}
+                    className="space-y-4 pt-4"
+                  >
+                      <FormField
+                        control={budgetForm.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Categoría</FormLabel>
+                            <div className="flex items-center gap-2">
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona una categoría" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {budgetCategories.map((category) => (
+                                    <SelectItem
+                                      key={category.name}
+                                      value={category.name}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <category.icon className="h-4 w-4" />
+                                        {category.name}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
 
-                            <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-                              <DialogTrigger asChild>
-                                  <Button variant="outline" size="icon" className="shrink-0">
-                                      <Plus className="h-4 w-4" />
-                                      <span className="sr-only">Añadir nueva categoría</span>
-                                  </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                  <DialogHeader>
-                                      <DialogTitle>Añadir Nueva Categoría</DialogTitle>
-                                      <DialogDescription>Crea una nueva categoría para seguir tus gastos.</DialogDescription>
-                                  </DialogHeader>
-                                  <Form {...categoryForm}>
-                                      <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4 pt-4">
-                                          <FormField
-                                              control={categoryForm.control}
-                                              name="name"
-                                              render={({ field }) => (
-                                                  <FormItem>
-                                                      <FormLabel>Nombre de la Categoría</FormLabel>
-                                                      <FormControl>
-                                                          <Input placeholder="Ej. Viajes" {...field} />
-                                                      </FormControl>
-                                                      <FormMessage />
-                                                  </FormItem>
-                                              )}
-                                          />
-                                          <DialogFooter>
-                                              <Button type="submit">Guardar categoría</Button>
-                                          </DialogFooter>
-                                      </form>
-                                  </Form>
-                              </DialogContent>
-                            </Dialog>
+                              <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="icon" className="shrink-0">
+                                        <Plus className="h-4 w-4" />
+                                        <span className="sr-only">Añadir nueva categoría</span>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Añadir Nueva Categoría</DialogTitle>
+                                        <DialogDescription>Crea una nueva categoría para seguir tus gastos.</DialogDescription>
+                                    </DialogHeader>
+                                    <Form {...categoryForm}>
+                                        <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4 pt-4">
+                                            <FormField
+                                                control={categoryForm.control}
+                                                name="name"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Nombre de la Categoría</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Ej. Viajes" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <DialogFooter>
+                                                <Button type="submit">Guardar categoría</Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </Form>
+                                </DialogContent>
+                              </Dialog>
 
-                          </div>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={budgetForm.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Monto</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="$500"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                  <DialogFooter>
-                    <Button type="submit">Guardar Presupuesto</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                            </div>
+                            <FormMessage/>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={budgetForm.control}
+                        name="amount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Monto</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="$500"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage/>
+                          </FormItem>
+                        )}
+                      />
+                    <DialogFooter>
+                      <Button type="submit">Guardar Presupuesto</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
+        <BudgetExplanation />
         <BudgetGoals />
       </div>
     </AppShell>
