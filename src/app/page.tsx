@@ -5,6 +5,7 @@ import { SpendingChart } from "@/components/dashboard/spending-chart";
 import { BudgetGoals } from "@/components/dashboard/budget-goals";
 import { UpcomingPendingPayments } from "@/components/dashboard/upcoming-bills";
 import { AISuggestions } from "@/components/dashboard/ai-suggestions";
+import { FinancialAnalysis } from "@/components/dashboard/financial-analysis";
 
 export default function Home() {
   return (
@@ -13,6 +14,9 @@ export default function Home() {
         <WelcomeBanner />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <OverviewCards />
+        </div>
+        <div className="grid gap-6">
+          <FinancialAnalysis />
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
           <SpendingChart />
