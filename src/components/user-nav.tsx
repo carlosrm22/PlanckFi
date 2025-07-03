@@ -26,9 +26,9 @@ export function UserNav() {
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src="https://placehold.co/40x40.png"
+                src="https://firebasestorage.googleapis.com/v0/b/planckfi.firebasestorage.app/o/images%2FPlanckFi.jpg?alt=media&token=05df2e8d-44ed-4e3f-8c5a-661fbc8b81cf"
                 alt="Avatar de invitado"
-                data-ai-hint="person abstract"
+                data-ai-hint="bulldog"
               />
               <AvatarFallback>P</AvatarFallback>
             </Avatar>

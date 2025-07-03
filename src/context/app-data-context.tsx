@@ -163,16 +163,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         } else {
             console.warn("User document not found in Firestore, creating one.");
             const defaultName = firebaseUser.email?.split('@')[0] || 'Nuevo Usuario';
+            const defaultPhotoURL = 'https://firebasestorage.googleapis.com/v0/b/planckfi.firebasestorage.app/o/images%2FPlanckFi.jpg?alt=media&token=05df2e8d-44ed-4e3f-8c5a-661fbc8b81cf';
             await setDoc(userDocRef, {
                 name: defaultName,
                 email: firebaseUser.email,
-                photoURL: null,
+                photoURL: defaultPhotoURL,
             });
              setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 displayName: defaultName,
-                photoURL: null,
+                photoURL: defaultPhotoURL,
             });
         }
       } else {
@@ -228,46 +229,43 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const updateUserProfile = async (profileData: { displayName: string; photoFile?: File }) => {
     if (!user || !db || !storage) {
-        toast({
-            title: 'Error de Autenticación',
-            description: 'Por favor, inicia sesión de nuevo.',
-            variant: 'destructive',
-        });
-        throw new Error("Usuario no autenticado.");
+        toast({ title: 'Error', description: 'Por favor, inicia sesión.', variant: 'destructive' });
+        return Promise.reject(new Error("Usuario no autenticado."));
     }
 
-    const userDocRef = doc(db, 'users', user.uid);
-    const updates: { name: string; photoURL?: string } = { name: profileData.displayName };
-    let newPhotoURL = user.photoURL;
+    try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const updates: { name: string; photoURL?: string } = { name: profileData.displayName };
+        let newPhotoURL = user.photoURL;
 
-    if (profileData.photoFile) {
-        const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-        try {
+        if (profileData.photoFile) {
+            const storageRef = ref(storage, `profile-pictures/${user.uid}`);
             await uploadBytes(storageRef, profileData.photoFile);
             const downloadURL = await getDownloadURL(storageRef);
             updates.photoURL = downloadURL;
             newPhotoURL = downloadURL;
-        } catch (error) {
-            console.error("Error al subir imagen a Firebase Storage: ", error);
-            toast({
-              title: 'Error al subir imagen',
-              description: 'No se pudo subir la imagen. Revisa tu conexión y la configuración de Firebase Storage.',
-              variant: 'destructive',
-            });
-            throw error;
         }
-    }
-    
-    await updateDoc(userDocRef, updates);
+        
+        await updateDoc(userDocRef, updates);
 
-    setUser(prevUser => {
-        if (!prevUser) return null;
-        return { 
-            ...prevUser, 
-            displayName: profileData.displayName,
-            photoURL: newPhotoURL,
-        };
-    });
+        setUser(prevUser => {
+            if (!prevUser) return null;
+            return { 
+                ...prevUser, 
+                displayName: profileData.displayName,
+                photoURL: newPhotoURL,
+            };
+        });
+        
+    } catch (error) {
+        console.error("Error al actualizar el perfil: ", error);
+        toast({
+          title: 'Error al actualizar',
+          description: 'No se pudo guardar tu perfil. Revisa tu conexión y la configuración de Firebase.',
+          variant: 'destructive',
+        });
+        return Promise.reject(error);
+    }
   };
   
   const isDemoMode = !user;

@@ -44,13 +44,14 @@ export default function RegisterPage() {
             const user = userCredential.user;
 
             const batch = writeBatch(db);
+            const defaultPhotoURL = 'https://firebasestorage.googleapis.com/v0/b/planckfi.firebasestorage.app/o/images%2FPlanckFi.jpg?alt=media&token=05df2e8d-44ed-4e3f-8c5a-661fbc8b81cf';
 
             // Create user document in 'users' collection
             const userDocRef = doc(db, 'users', user.uid);
             batch.set(userDocRef, {
                 email: user.email,
                 name: user.email?.split('@')[0] || 'Nuevo Usuario',
-                photoURL: null,
+                photoURL: defaultPhotoURL,
             });
 
             // Create initial categories for the user
