@@ -41,11 +41,3 @@ export const pendingPayments: PendingPayment[] = [
     { id: 'b3', name: "Alquiler", amount: 1200, dueDay: 1, category: "Alquiler" },
     { id: 'b4', name: "Seguro de Auto", amount: 120.00, dueDay: 5, category: "Transporte" },
 ]
-
-export const spendingData = [
-  { category: 'Comestibles', value: 450.76, fill: 'var(--chart-1)' },
-  { category: 'Alquiler', value: 1200, fill: 'var(--chart-2)' },
-  { category: 'Entretenimiento', value: 221.34, fill: 'var(--chart-3)' },
-  { category: 'Transporte', value: 135.50, fill: 'var(--chart-4)' },
-  { category: 'Salud', value: 75.00, fill: 'var(--chart-5)' },
-]
