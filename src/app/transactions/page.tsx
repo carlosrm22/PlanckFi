@@ -7,9 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, Download, FileSpreadsheet, FileText, Search } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search } from 'lucide-react';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -312,34 +310,6 @@ export default function TransactionsPage() {
     link.click();
     document.body.removeChild(link);
   };
-  
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    
-    doc.text("Reporte de Transacciones", 14, 16);
-
-    const tableColumn = ["Fecha", "Descripción", "Categoría", "Tipo", "Monto"];
-    const tableRows: (string | number)[][] = [];
-
-    filteredTransactions.forEach(t => {
-      const transactionData = [
-        format(new Date(t.date), 'yyyy-MM-dd'),
-        t.description,
-        t.category,
-        t.type === 'income' ? 'Ingreso' : 'Gasto',
-        new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(t.amount)
-      ];
-      tableRows.push(transactionData);
-    });
-
-    autoTable(doc, {
-        head: [tableColumn],
-        body: tableRows,
-        startY: 20,
-    });
-    
-    doc.save('PlanckFi_transacciones.pdf');
-  };
 
 
   return (
@@ -578,24 +548,10 @@ export default function TransactionsPage() {
                     </Form>
                 </DialogContent>
                 </Dialog>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            <Download className="mr-2 h-4 w-4" />
-                            Exportar
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={handleExportCSV}>
-                            <FileSpreadsheet className="mr-2 h-4 w-4" />
-                            Descargar CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportPDF}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Descargar PDF
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <Button variant="outline" onClick={handleExportCSV}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Exportar CSV
+                </Button>
             </div>
           </div>
         </CardHeader>
