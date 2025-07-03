@@ -230,15 +230,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const updateUserProfile = async (profileData: { displayName: string; photoFile?: File }) => {
     if (!user || !db || !storage) {
         toast({ title: 'Error', description: 'Por favor, inicia sesión.', variant: 'destructive' });
-        return Promise.reject(new Error("Usuario no autenticado."));
+        throw new Error("Usuario no autenticado o Firebase no configurado.");
     }
 
-    try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const updates: { name: string; photoURL?: string } = { name: profileData.displayName };
-        let newPhotoURL = user.photoURL;
+    const userDocRef = doc(db, 'users', user.uid);
+    const updates: { name: string; photoURL?: string } = { name: profileData.displayName };
+    let newPhotoURL = user.photoURL;
 
+    try {
         if (profileData.photoFile) {
+            // The image will be stored in 'profile-pictures/{user.uid}'
+            // This overwrites any existing file, which is what we want.
             const storageRef = ref(storage, `profile-pictures/${user.uid}`);
             await uploadBytes(storageRef, profileData.photoFile);
             const downloadURL = await getDownloadURL(storageRef);
@@ -248,6 +250,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         
         await updateDoc(userDocRef, updates);
 
+        // Update local user state to reflect changes immediately
         setUser(prevUser => {
             if (!prevUser) return null;
             return { 
@@ -261,10 +264,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("Error al actualizar el perfil: ", error);
         toast({
           title: 'Error al actualizar',
-          description: 'No se pudo guardar tu perfil. Revisa tu conexión y la configuración de Firebase.',
+          description: 'No se pudo guardar tu perfil. Revisa tu conexión a internet y las reglas de seguridad de Firebase Storage.',
           variant: 'destructive',
         });
-        return Promise.reject(error);
+        // Re-throw the error so the calling form knows about the failure
+        throw error;
     }
   };
   

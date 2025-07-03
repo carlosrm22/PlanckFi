@@ -53,10 +53,14 @@ export default function SettingsPage() {
   });
   
   useEffect(() => {
+    // This effect handles the warning when the user tries to leave the page
+    // while the form is submitting. NOTE: This only works for browser-level
+    // navigation like closing the tab or refreshing, not for client-side
+    // navigation within the app (clicking a link in the sidebar).
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (form.formState.isSubmitting) {
         e.preventDefault();
-        e.returnValue = 'Hay cambios sin guardar. ¿Estás seguro de que quieres salir?';
+        e.returnValue = 'Los cambios se están guardando. ¿Estás seguro de que quieres salir?';
       }
     };
 
@@ -105,18 +109,21 @@ export default function SettingsPage() {
 
   const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
     if (!user || !updateUserProfile) return;
+    
     try {
       await updateUserProfile({ 
         displayName: values.name,
-        ...(photoFile && { photoFile })
+        ...(photoFile && { photoFile }) // Only include photoFile if it exists
       });
       toast({
         title: '¡Éxito!',
         description: 'Tu perfil ha sido actualizado.',
       });
-      setPhotoFile(null); // Reset file after upload
+      setPhotoFile(null); // Reset file after successful upload
     } catch (error) {
-      console.error(error);
+      // Error is already handled and toasted in updateUserProfile
+      // The form's isSubmitting state will automatically be set to false
+      console.error("Fallo la actualización del perfil desde la página de configuración.", error);
     }
   };
 
