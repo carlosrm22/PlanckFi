@@ -18,7 +18,8 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  orderBy
+  orderBy,
+  writeBatch
 } from 'firebase/firestore';
 import { initialCategoriesData } from '@/lib/data';
 
@@ -92,6 +93,17 @@ function FirebaseNotConfigured() {
             </div>
         </div>
     );
+}
+
+// Helper para limpiar datos para Firestore
+function cleanDataForFirestore(data: any) {
+    const cleanedData: any = {};
+    for (const key in data) {
+        if (data[key] !== undefined) {
+            cleanedData[key] = data[key];
+        }
+    }
+    return cleanedData;
 }
 
 
@@ -229,7 +241,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     if (user && db) {
-        const docRef = await addDoc(collection(db, 'users', user.uid, 'transactions'), transaction);
+        const cleanedTransaction = cleanDataForFirestore(transaction);
+        const docRef = await addDoc(collection(db, 'users', user.uid, 'transactions'), cleanedTransaction);
         setFbTransactions(prev => [{ ...transaction, id: docRef.id }, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     } else {
         const newTransaction = { ...transaction, id: `trans-${Date.now()}` };
@@ -240,8 +253,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   
   const editTransaction = async (id: string, updatedTransaction: Omit<Transaction, 'id'>) => {
     if (user && db) {
+        const cleanedTransaction = cleanDataForFirestore(updatedTransaction);
         const docRef = doc(db, 'users', user.uid, 'transactions', id);
-        await updateDoc(docRef, updatedTransaction);
+        await updateDoc(docRef, cleanedTransaction);
         setFbTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     } else {
         setLocalTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
