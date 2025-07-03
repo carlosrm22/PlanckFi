@@ -204,7 +204,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             setFbAccounts(accountsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Account)));
             setFbPendingPayments(pendingPaymentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PendingPayment)));
             setFbBudgets(budgetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), icon: iconMap[doc.data().icon as keyof typeof iconMap] || Tag } as BudgetGoal)));
-            setFbTransactions(transactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction)));
+            
+            const transactionsData = transactionsSnapshot.docs.map(doc => {
+                const data = doc.data();
+                // Handle both Firestore Timestamps and ISO strings
+                if (data.date && typeof data.date.toDate === 'function') {
+                    // It's a Firestore Timestamp, convert to ISO string
+                    data.date = data.date.toDate().toISOString();
+                }
+                // If it's already a string, do nothing.
+                return { id: doc.id, ...data } as Transaction;
+            });
+            setFbTransactions(transactionsData);
         };
         fetchData();
     } else {
