@@ -65,6 +65,7 @@ interface AppDataContextType {
   addPendingPayment: (payment: Omit<PendingPayment, 'id'>) => Promise<void>;
   editPendingPayment: (id: string, updatedPayment: Omit<PendingPayment, 'id'>) => Promise<void>;
   deletePendingPayment: (id: string) => Promise<void>;
+  isDemoMode: boolean;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -365,6 +366,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     addPendingPayment,
     editPendingPayment,
     deletePendingPayment,
+    isDemoMode,
   };
 
   return (

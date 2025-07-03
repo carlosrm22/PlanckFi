@@ -118,7 +118,7 @@ export default function TransactionsPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory } = useAppData();
+  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode } = useAppData();
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
