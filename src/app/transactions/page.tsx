@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, Download, FileSpreadsheet, FileText, Search } from 'lucide-react';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import { AppShell } from '@/components/layout/app-shell';
