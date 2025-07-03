@@ -144,7 +144,7 @@ export function AIBudgetAssistant() {
                     <div key={i} className="p-3 border rounded-md">
                         <div className="flex justify-between items-center font-semibold">
                             <span>{s.category}</span>
-                            <span>${s.amount.toFixed(2)}</span>
+                            <span>{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(s.amount)}</span>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">{s.justification}</p>
                     </div>

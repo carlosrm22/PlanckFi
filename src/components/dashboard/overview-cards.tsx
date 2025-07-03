@@ -26,9 +26,9 @@ export function OverviewCards() {
   }, [accounts, transactions]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-ES", {
+    return new Intl.NumberFormat("es-MX", {
         style: "currency",
-        currency: "USD",
+        currency: "MXN",
     }).format(amount);
   }
 

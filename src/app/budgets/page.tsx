@@ -210,7 +210,7 @@ export default function BudgetsPage() {
                             <FormControl>
                               <Input
                                 type="number"
-                                placeholder="$500"
+                                placeholder="500.00"
                                 {...field}
                                 value={field.value ?? ''}
                               />

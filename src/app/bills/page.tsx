@@ -166,7 +166,7 @@ export default function BillsPage() {
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                     <div className="text-left sm:text-right">
                       <p className="text-lg font-bold">
-                         {new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD" }).format(payment.amount)}
+                         {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(payment.amount)}
                       </p>
                        <p className="text-sm text-muted-foreground">{payment.category}</p>
                     </div>

@@ -123,7 +123,7 @@ export function UpcomingPendingPayments() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-between">
-                        <p className="font-semibold text-left sm:text-right">${payment.amount.toFixed(2)}</p>
+                        <p className="font-semibold text-left sm:text-right">{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(payment.amount)}</p>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">

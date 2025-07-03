@@ -579,7 +579,7 @@ export default function TransactionsPage() {
                             <FormControl>
                                 <Input
                                 type="number"
-                                placeholder="$5.00"
+                                placeholder="5.00"
                                 {...field}
                                 value={field.value ?? ''}
                                 />
@@ -916,9 +916,9 @@ export default function TransactionsPage() {
                             )}
                         >
                             {transaction.amount > 0 ? '+' : ''}
-                            {new Intl.NumberFormat('es-ES', {
+                            {new Intl.NumberFormat('es-MX', {
                             style: 'currency',
-                            currency: 'USD',
+                            currency: 'MXN',
                             }).format(transaction.amount)}
                         </TableCell>
                         <TableCell className="text-right">

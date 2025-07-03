@@ -259,9 +259,9 @@ export default function AccountsPage() {
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                     <div className="text-left sm:text-right">
                       <p className="text-lg font-bold">
-                         {new Intl.NumberFormat("es-ES", {
+                         {new Intl.NumberFormat("es-MX", {
                             style: "currency",
-                            currency: "USD",
+                            currency: "MXN",
                           }).format(account.balance)}
                       </p>
                       <p className="text-sm text-muted-foreground">

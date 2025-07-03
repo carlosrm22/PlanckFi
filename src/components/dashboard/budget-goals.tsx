@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -47,9 +48,9 @@ export function BudgetGoals() {
                 </div>
                 <div className="text-sm text-muted-foreground">
                   <span className={cn("font-semibold", isOverBudget ? "text-destructive" : "text-card-foreground")}>
-                    ${goal.spent.toFixed(2)}
+                    {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(goal.spent)}
                   </span>
-                  <span> / ${goal.budgeted.toFixed(2)}</span>
+                  <span> / {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(goal.budgeted)}</span>
                 </div>
               </div>
               <Progress value={percentage} indicatorClassName={isOverBudget ? "bg-destructive" : ""} />

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -18,11 +19,11 @@ export function AISuggestions() {
     setSuggestions(null);
     
     const mockSpendingData = `
-      - Comestibles: $450/mes
-      - Alquiler: $1200/mes
-      - Entretenimiento (Netflix, cine): $220/mes
-      - Transporte (Gasolina, transporte público): $135/mes
-      - Salud (Gimnasio, suplementos): $75/mes
+      - Comestibles: $450 MXN/mes
+      - Alquiler: $1200 MXN/mes
+      - Entretenimiento (Netflix, cine): $220 MXN/mes
+      - Transporte (Gasolina, transporte público): $135 MXN/mes
+      - Salud (Gimnasio, suplementos): $75 MXN/mes
     `;
     const mockFinancialGoals = "Ahorrar para el pago inicial de una casa en 2 años.";
 

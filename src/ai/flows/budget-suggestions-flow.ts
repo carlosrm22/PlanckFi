@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
   output: {schema: BudgetSuggestionsOutputSchema},
   prompt: `Eres un asesor financiero experto. Tu tarea es crear un presupuesto mensual personalizado para un usuario basado en sus ingresos y metas financieras. Usa la regla 50/30/20 como guía (50% para Necesidades, 30% para Deseos, 20% para Ahorros/Deuda), pero sé flexible según las metas específicas del usuario.
 
-Ingreso Mensual del Usuario (después de impuestos): \${{{monthlyIncome}}}
+Ingreso Mensual del Usuario (después de impuestos): \${{{monthlyIncome}}} MXN
 Metas Financieras del Usuario: {{{financialGoals}}}
 
 El usuario ya tiene las siguientes categorías de gastos, debes priorizarlas en tus sugerencias si son relevantes:

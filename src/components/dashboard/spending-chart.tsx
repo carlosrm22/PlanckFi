@@ -94,7 +94,7 @@ export function SpendingChart() {
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent 
-                    formatter={(value, name) => [`$${(value as number).toFixed(2)}`, name as string]}
+                    formatter={(value, name) => [`${new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value as number)}`, name as string]}
                     hideLabel 
                 />}
               />
@@ -120,7 +120,7 @@ export function SpendingChart() {
       </CardContent>
        <CardContent className="mt-4 flex flex-col gap-2 text-sm">
         <div className="flex items-center justify-center text-center font-medium leading-none">
-          Gasto Total: ${totalValue.toFixed(2)}
+          Gasto Total: {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(totalValue)}
         </div>
         {chartData.length > 0 && (
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 p-4">
@@ -128,7 +128,7 @@ export function SpendingChart() {
               <div key={item.category} className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
                 <div className="flex-1 truncate">{item.category}</div>
-                <div className="font-medium">${item.value.toFixed(2)}</div>
+                <div className="font-medium">{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(item.value)}</div>
               </div>
             ))}
           </div>
