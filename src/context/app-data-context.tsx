@@ -9,7 +9,7 @@ import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utens
 import type { Category, BudgetGoal, Transaction, Account, PendingPayment } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, isConfigured } from '@/lib/firebase';
-import { type User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { type User, onAuthStateChanged, signOut as firebaseSignOut, updateProfile } from 'firebase/auth';
 import {
   collection,
   doc,
@@ -48,6 +48,7 @@ const demoBudgets: Omit<BudgetGoal, 'id' | 'spent'>[] = [
 interface AppDataContextType {
   user: User | null;
   signOut: () => void;
+  updateUserProfile: (profileData: { displayName?: string; }) => Promise<void>;
   categories: Category[];
   addCategory: (name: string) => Promise<void>;
   editCategory: (id: string, newName: string) => Promise<void>;
@@ -183,6 +184,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       await firebaseSignOut(auth);
       router.push('/login');
     }
+  };
+
+  const updateUserProfile = async (profileData: { displayName?: string }) => {
+    if (!auth?.currentUser) {
+      throw new Error("Usuario no autenticado.");
+    }
+    await updateProfile(auth.currentUser, profileData);
+    // Manually update the user object in state to reflect the change immediately
+    setUser(prevUser => {
+        if (!prevUser) return null;
+        return { ...prevUser, ...profileData };
+    });
   };
   
   const isDemoMode = !user;
@@ -349,6 +362,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     signOut,
+    updateUserProfile,
     categories,
     addCategory,
     editCategory,
