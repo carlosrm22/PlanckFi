@@ -8,7 +8,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle } from 'lucide-react';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -93,6 +95,12 @@ const transactionFormSchema = z.object({
   }),
   receiptImageUrl: z.string().optional(),
 });
+
+declare module 'jspdf' {
+    interface jsPDF {
+        autoTable: (options: any) => jsPDF;
+    }
+}
 
 export default function TransactionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -251,6 +259,59 @@ export default function TransactionsPage() {
     form.setValue('receiptImageUrl', photoDataUri, { shouldValidate: true });
     setCameraOpen(false);
   };
+  
+  const handleExportCSV = () => {
+    const headers = ['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto'];
+    const csvRows = [
+      headers.join(','),
+      ...transactions.map(t => {
+        const date = format(new Date(t.date), 'yyyy-MM-dd');
+        const description = `"${t.description.replace(/"/g, '""')}"`;
+        const category = t.category;
+        const type = t.type === 'income' ? 'Ingreso' : 'Gasto';
+        const amount = t.amount;
+        return [date, description, category, type, amount].join(',');
+      })
+    ];
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'transacciones.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.text("Reporte de Transacciones", 14, 16);
+
+    const tableColumn = ["Fecha", "Descripción", "Categoría", "Tipo", "Monto"];
+    const tableRows: (string | number)[][] = [];
+
+    transactions.forEach(t => {
+      const transactionData = [
+        format(new Date(t.date), 'yyyy-MM-dd'),
+        t.description,
+        t.category,
+        t.type === 'income' ? 'Ingreso' : 'Gasto',
+        new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(t.amount)
+      ];
+      tableRows.push(transactionData);
+    });
+
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+    });
+    
+    doc.save('transacciones.pdf');
+  };
 
 
   return (
@@ -264,230 +325,250 @@ export default function TransactionsPage() {
                 Una lista de tus transacciones recientes.
               </CardDescription>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) setEditingTransaction(null); }}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Añadir Transacción
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>{editingTransaction ? "Editar Transacción" : "Añadir Nueva Transacción"}</DialogTitle>
-                  <DialogDescription>
-                    {editingTransaction ? "Actualiza los detalles de tu transacción." : "Registra un nuevo ingreso o gasto."}
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-4 pt-4 max-h-[70vh] overflow-y-auto pr-2"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="type"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel>Tipo</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex space-x-4"
-                              disabled={!!editingTransaction}
-                            >
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="expense" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  Gasto
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="income" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  Ingreso
-                                </FormLabel>
-                              </FormItem>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descripción</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ej. Café" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Monto</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="$5.00"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {transactionType === 'expense' ? (
-                       <FormField
+            <div className="flex items-center gap-2">
+                <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) setEditingTransaction(null); }}>
+                <DialogTrigger asChild>
+                    <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Añadir Transacción
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                    <DialogTitle>{editingTransaction ? "Editar Transacción" : "Añadir Nueva Transacción"}</DialogTitle>
+                    <DialogDescription>
+                        {editingTransaction ? "Actualiza los detalles de tu transacción." : "Registra un nuevo ingreso o gasto."}
+                    </DialogDescription>
+                    </DialogHeader>
+                    <Form {...form}>
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="space-y-4 pt-4 max-h-[70vh] overflow-y-auto pr-2"
+                    >
+                        <FormField
                         control={form.control}
-                        name="category"
+                        name="type"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Categoría</FormLabel>
-                             <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona una categoría" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {expenseCategories.map((category) => (
-                                    <SelectItem
-                                      key={category.name}
-                                      value={category.name}
-                                    >
-                                      {category.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ) : (
-                      <FormField
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Categoría</FormLabel>
+                            <FormItem className="space-y-3">
+                            <FormLabel>Tipo</FormLabel>
                             <FormControl>
-                                <Input disabled value={incomeCategory?.name || 'Ingresos'} />
+                                <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex space-x-4"
+                                disabled={!!editingTransaction}
+                                >
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                    <RadioGroupItem value="expense" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                    Gasto
+                                    </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                    <RadioGroupItem value="income" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                    Ingreso
+                                    </FormLabel>
+                                </FormItem>
+                                </RadioGroup>
                             </FormControl>
                             <FormMessage />
-                          </FormItem>
+                            </FormItem>
                         )}
-                      />
-                    )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Fecha</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={'outline'}
-                                  className={cn(
-                                    'w-full pl-3 text-left font-normal',
-                                    !field.value && 'text-muted-foreground'
-                                  )}
+                        <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Descripción</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej. Café" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+
+                        <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Monto</FormLabel>
+                            <FormControl>
+                                <Input
+                                type="number"
+                                placeholder="$5.00"
+                                {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        
+                        {transactionType === 'expense' ? (
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Categoría</FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
                                 >
-                                  {field.value ? (
-                                    format(field.value, 'dd MMMM, yyyy', { locale: es })
-                                  ) : (
-                                    <span>Selecciona una fecha</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                  date > new Date() || date < new Date('1900-01-01')
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona una categoría" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {expenseCategories.map((category) => (
+                                        <SelectItem
+                                        key={category.name}
+                                        value={category.name}
+                                        >
+                                        {category.name}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        ) : (
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Categoría</FormLabel>
+                                <FormControl>
+                                    <Input disabled value={incomeCategory?.name || 'Ingresos'} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        )}
 
-                    <FormField
-                      control={form.control}
-                      name="receiptImageUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Recibo (Opcional)</FormLabel>
-                          <FormControl>
-                            <>
-                              {field.value ? (
-                                <div className="relative w-full h-40 border rounded-md">
-                                  <Image src={field.value} alt="Vista previa del recibo" fill style={{ objectFit: 'contain' }} />
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-1 right-1 h-6 w-6 z-10"
-                                    onClick={() => field.onChange(undefined)}
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="grid grid-cols-2 gap-2">
-                                  <Button type="button" variant="outline" onClick={() => setCameraOpen(true)}>
-                                    <Camera className="mr-2 h-4 w-4" />
-                                    Tomar Foto
-                                  </Button>
-                                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Subir Archivo
-                                  </Button>
-                                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*" />
-                                </div>
-                              )}
-                            </>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                            <FormLabel>Fecha</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={'outline'}
+                                    className={cn(
+                                        'w-full pl-3 text-left font-normal',
+                                        !field.value && 'text-muted-foreground'
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, 'dd MMMM, yyyy', { locale: es })
+                                    ) : (
+                                        <span>Selecciona una fecha</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                    date > new Date() || date < new Date('1900-01-01')
+                                    }
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
 
-                    <DialogFooter className="pt-4">
-                      <Button type="submit">{editingTransaction ? "Guardar Cambios" : "Guardar Transacción"}</Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+                        <FormField
+                        control={form.control}
+                        name="receiptImageUrl"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Recibo (Opcional)</FormLabel>
+                            <FormControl>
+                                <>
+                                {field.value ? (
+                                    <div className="relative w-full h-40 border rounded-md">
+                                    <Image src={field.value} alt="Vista previa del recibo" fill style={{ objectFit: 'contain' }} />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-1 right-1 h-6 w-6 z-10"
+                                        onClick={() => field.onChange(undefined)}
+                                    >
+                                        <XCircle className="h-4 w-4" />
+                                    </Button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-2">
+                                    <Button type="button" variant="outline" onClick={() => setCameraOpen(true)}>
+                                        <Camera className="mr-2 h-4 w-4" />
+                                        Tomar Foto
+                                    </Button>
+                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        Subir Archivo
+                                    </Button>
+                                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*" />
+                                    </div>
+                                )}
+                                </>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+
+                        <DialogFooter className="pt-4">
+                        <Button type="submit">{editingTransaction ? "Guardar Cambios" : "Guardar Transacción"}</Button>
+                        </DialogFooter>
+                    </form>
+                    </Form>
+                </DialogContent>
+                </Dialog>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleExportCSV}>
+                            <FileSpreadsheet className="mr-2 h-4 w-4" />
+                            Descargar CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportPDF}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Descargar PDF
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
