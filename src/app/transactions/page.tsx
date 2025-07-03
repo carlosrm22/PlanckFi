@@ -113,6 +113,7 @@ export default function TransactionsPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('all');
@@ -788,7 +789,7 @@ export default function TransactionsPage() {
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
                             <FormLabel>Fecha</FormLabel>
-                            <Popover>
+                            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                                 <PopoverTrigger asChild>
                                 <FormControl>
                                     <Button
@@ -810,8 +811,13 @@ export default function TransactionsPage() {
                                 <PopoverContent className="w-auto p-0" align="start">
                                 <Calendar
                                     mode="single"
+                                    locale={es}
+                                    required
                                     selected={field.value}
-                                    onSelect={field.onChange}
+                                    onSelect={(date) => {
+                                        field.onChange(date);
+                                        setIsCalendarOpen(false);
+                                    }}
                                     disabled={(date) =>
                                     date > new Date() || date < new Date('1900-01-01')
                                     }
