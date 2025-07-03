@@ -10,7 +10,7 @@ import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, Download, FileSpreadsheet, FileText, Search } from 'lucide-react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -95,12 +95,6 @@ const transactionFormSchema = z.object({
   }),
   receiptImageUrl: z.string().optional(),
 });
-
-declare module 'jspdf' {
-    interface jsPDF {
-        autoTable: (options: any) => jsPDF;
-    }
-}
 
 export default function TransactionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -339,7 +333,7 @@ export default function TransactionsPage() {
       tableRows.push(transactionData);
     });
 
-    doc.autoTable({
+    autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
         startY: 20,
