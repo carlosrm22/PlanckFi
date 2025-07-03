@@ -61,7 +61,7 @@ export default function ScanReceiptPage() {
             stream.getTracks().forEach(track => track.stop());
         }
     }
-  }, [toast]);
+  }, []);
 
   const processReceipt = async (photoDataUri: string) => {
     try {

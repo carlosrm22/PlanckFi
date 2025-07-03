@@ -10,7 +10,14 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
+import { z } from 'genkit';
+import { categories as appCategories } from '@/lib/data';
+
+// Dynamically create category list for prompt and schema description
+const expenseCategoriesList = appCategories
+  .filter(c => c.name !== 'Ingresos')
+  .map(c => c.name);
+const promptCategoryList = [...expenseCategoriesList].join(', ');
 
 const ScanReceiptInputSchema = z.object({
   photoDataUri: z
@@ -32,7 +39,7 @@ const ScanReceiptOutputSchema = z.object({
   category: z
     .string()
     .describe(
-      'Sugiere la categoría más apropiada de la siguiente lista: Comestibles, Entretenimiento, Transporte, Salud, Servicios, Restaurante, Ropa, Otros.'
+      `Sugiere la categoría más apropiada de la siguiente lista: ${promptCategoryList}.`
     ),
 });
 export type ScanReceiptOutput = z.infer<typeof ScanReceiptOutputSchema>;
@@ -51,7 +58,7 @@ const prompt = ai.definePrompt({
 - El nombre de la tienda o proveedor como 'description'.
 - El monto total de la transacción como 'amount'.
 - La fecha de la transacción en formato YYYY-MM-DD como 'date'. Si el año no está en el recibo, asume el año actual.
-- Sugiere una categoría adecuada para esta compra de la siguiente lista como 'category': Comestibles, Entretenimiento, Transporte, Salud, Servicios, Restaurante, Ropa, Otros.
+- Sugiere una categoría adecuada para esta compra de la siguiente lista como 'category': ${promptCategoryList}. Si ninguna categoría coincide, usa 'Otros'.
 
 Imagen del Recibo: {{media url=photoDataUri}}`,
 });

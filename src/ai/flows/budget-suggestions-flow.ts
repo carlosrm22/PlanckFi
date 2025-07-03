@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import {z} from 'genkit';
 
 const BudgetSuggestionsInputSchema = z.object({
   monthlyIncome: z.number().describe('The user\'s total monthly income after taxes.'),
@@ -38,17 +38,17 @@ const prompt = ai.definePrompt({
   name: 'budgetSuggestionsPrompt',
   input: {schema: BudgetSuggestionsInputSchema},
   output: {schema: BudgetSuggestionsOutputSchema},
-  prompt: `You are an expert financial advisor. Your task is to create a personalized monthly budget for a user based on their income and financial goals. Use the 50/30/20 rule as a guideline (50% for Needs, 30% for Wants, 20% for Savings/Debt), but be flexible based on the user's specific goals.
+  prompt: `Eres un asesor financiero experto. Tu tarea es crear un presupuesto mensual personalizado para un usuario basado en sus ingresos y metas financieras. Usa la regla 50/30/20 como guía (50% para Necesidades, 30% para Deseos, 20% para Ahorros/Deuda), pero sé flexible según las metas específicas del usuario.
 
-User's Monthly Income (after tax): \${{{monthlyIncome}}}
-User's Financial Goals: {{{financialGoals}}}
+Ingreso Mensual del Usuario (después de impuestos): \${{{monthlyIncome}}}
+Metas Financieras del Usuario: {{{financialGoals}}}
 
-The user already has the following expense categories, you should prioritize these in your suggestions if they are relevant:
+El usuario ya tiene las siguientes categorías de gastos, debes priorizarlas en tus sugerencias si son relevantes:
 {{#each existingCategories}}
 - {{{this}}}
 {{/each}}
 
-Please provide a list of budget suggestions for various relevant spending categories (like Groceries, Transport, Entertainment, etc.). For each suggestion, provide the category, a recommended monthly amount, and a brief justification for the amount. Ensure the total of all suggested budget amounts does not exceed the user's monthly income.
+Por favor, proporciona una lista de sugerencias de presupuesto para varias categorías de gasto relevantes (como Comestibles, Transporte, Entretenimiento, etc.). Para cada sugerencia, proporciona la categoría, un monto mensual recomendado y una breve justificación para el monto. Asegúrate de que el total de todos los montos de presupuesto sugeridos no exceda el ingreso mensual del usuario.
 `,
 });
 

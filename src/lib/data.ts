@@ -1,5 +1,5 @@
 import type { BudgetGoal, PendingPayment, Category, Transaction, Account } from "@/lib/types";
-import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark } from "lucide-react";
+import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark, Tag } from "lucide-react";
 
 export const categories: Category[] = [
   { name: "Comestibles", icon: ShoppingCart, color: "text-blue-500" },
@@ -10,6 +10,7 @@ export const categories: Category[] = [
   { name: "Servicios", icon: Receipt, color: "text-orange-500" },
   { name: "Restaurante", icon: Utensils, color: "text-pink-500" },
   { name: "Ingresos", icon: Landmark, color: "text-emerald-500" },
+  { name: "Otros", icon: Tag, color: "text-gray-500" },
 ];
 
 export const transactions: Transaction[] = [
