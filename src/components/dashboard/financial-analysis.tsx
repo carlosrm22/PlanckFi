@@ -97,7 +97,7 @@ export function FinancialAnalysis() {
                             <TooltipContent><p>El porcentaje de tus ingresos que estás ahorrando.</p></TooltipContent>
                         </Tooltip>
                     </div>
-                    <p className={cn("text-3xl font-bold", metrics.savingsRate >= 20 ? "text-emerald-600" : metrics.savingsRate >= 10 ? "text-yellow-500" : "text-destructive")}>
+                    <p className={cn("text-3xl font-bold", metrics.savingsRate >= 20 ? "text-accent" : metrics.savingsRate >= 10 ? "text-yellow-500" : "text-destructive")}>
                         {metrics.savingsRate.toFixed(1)}%
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -136,7 +136,7 @@ export function FinancialAnalysis() {
                             <TooltipContent><p>Porcentaje de tu ingreso que se va a pagos de deudas recurrentes. Menos de 36% es ideal.</p></TooltipContent>
                         </Tooltip>
                     </div>
-                     <p className={cn("text-3xl font-bold", metrics.dtiRatio <= 36 ? "text-emerald-600" : metrics.dtiRatio <= 43 ? "text-yellow-500" : "text-destructive")}>
+                     <p className={cn("text-3xl font-bold", metrics.dtiRatio <= 36 ? "text-accent" : metrics.dtiRatio <= 43 ? "text-yellow-500" : "text-destructive")}>
                         {metrics.dtiRatio.toFixed(1)}%
                     </p>
                      <p className="text-sm text-muted-foreground">
@@ -156,7 +156,7 @@ export function FinancialAnalysis() {
                             <TooltipContent><p>El valor total de tus activos menos tus pasivos.</p></TooltipContent>
                         </Tooltip>
                     </div>
-                    <p className={cn("text-3xl font-bold", metrics.netWorth >= 0 ? "text-emerald-600" : "text-destructive")}>
+                    <p className={cn("text-3xl font-bold", metrics.netWorth >= 0 ? "text-accent" : "text-destructive")}>
                         {formatCurrency(metrics.netWorth)}
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -176,7 +176,7 @@ export function FinancialAnalysis() {
                             <TooltipContent><p>La diferencia entre tus ingresos y gastos de este mes.</p></TooltipContent>
                         </Tooltip>
                     </div>
-                    <p className={cn("text-3xl font-bold", metrics.netMonthlyCashFlow >= 0 ? "text-emerald-600" : "text-destructive")}>
+                    <p className={cn("text-3xl font-bold", metrics.netMonthlyCashFlow >= 0 ? "text-accent" : "text-destructive")}>
                         {formatCurrency(metrics.netMonthlyCashFlow)}
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -197,7 +197,7 @@ export function FinancialAnalysis() {
                         </Tooltip>
                     </div>
                      <div className="flex items-baseline gap-2">
-                        <p className={cn("text-3xl font-bold", metrics.spendingTrend > 5 ? "text-destructive" : metrics.spendingTrend < -5 ? "text-emerald-600" : "text-yellow-500")}>
+                        <p className={cn("text-3xl font-bold", metrics.spendingTrend > 5 ? "text-destructive" : metrics.spendingTrend < -5 ? "text-accent" : "text-yellow-500")}>
                            {metrics.spendingTrend >= 0 ? '+' : ''}{metrics.spendingTrend.toFixed(1)}%
                         </p>
                          <span className="text-sm text-muted-foreground">vs. mes anterior</span>

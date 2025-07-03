@@ -702,7 +702,7 @@ export default function TransactionsPage() {
                             className={cn(
                             'text-right font-semibold',
                             transaction.amount > 0
-                                ? 'text-emerald-600'
+                                ? 'text-accent'
                                 : 'text-card-foreground'
                             )}
                         >
