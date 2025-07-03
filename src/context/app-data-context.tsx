@@ -228,19 +228,34 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const updateUserProfile = async (profileData: { displayName: string; photoFile?: File }) => {
     if (!user || !db || !storage) {
-      throw new Error("Usuario no autenticado.");
+        toast({
+            title: 'Error de Autenticación',
+            description: 'Por favor, inicia sesión de nuevo.',
+            variant: 'destructive',
+        });
+        throw new Error("Usuario no autenticado.");
     }
+
     const userDocRef = doc(db, 'users', user.uid);
-    
     const updates: { name: string; photoURL?: string } = { name: profileData.displayName };
     let newPhotoURL = user.photoURL;
 
     if (profileData.photoFile) {
         const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-        await uploadBytes(storageRef, profileData.photoFile);
-        const downloadURL = await getDownloadURL(storageRef);
-        updates.photoURL = downloadURL;
-        newPhotoURL = downloadURL;
+        try {
+            await uploadBytes(storageRef, profileData.photoFile);
+            const downloadURL = await getDownloadURL(storageRef);
+            updates.photoURL = downloadURL;
+            newPhotoURL = downloadURL;
+        } catch (error) {
+            console.error("Error al subir imagen a Firebase Storage: ", error);
+            toast({
+              title: 'Error al subir imagen',
+              description: 'No se pudo subir la imagen. Revisa tu conexión y la configuración de Firebase Storage.',
+              variant: 'destructive',
+            });
+            throw error;
+        }
     }
     
     await updateDoc(userDocRef, updates);

@@ -51,6 +51,21 @@ export default function SettingsPage() {
       name: "",
     },
   });
+  
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (form.formState.isSubmitting) {
+        e.preventDefault();
+        e.returnValue = 'Hay cambios sin guardar. ¿Estás seguro de que quieres salir?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [form.formState.isSubmitting]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -101,11 +116,6 @@ export default function SettingsPage() {
       });
       setPhotoFile(null); // Reset file after upload
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar tu perfil. Por favor, inténtalo de nuevo.',
-        variant: 'destructive',
-      });
       console.error(error);
     }
   };
