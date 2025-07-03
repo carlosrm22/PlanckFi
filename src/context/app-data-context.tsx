@@ -67,6 +67,7 @@ interface AppDataContextType {
   addBudget: (budget: Omit<BudgetGoal, 'id' | 'spent' | 'color'>) => Promise<void>;
   transactions: Transaction[];
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  addMultipleTransactions: (transactions: Omit<Transaction, 'id'>[]) => Promise<void>;
   editTransaction: (id: string, updatedTransaction: Omit<Transaction, 'id'>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   accounts: Account[];
@@ -239,8 +240,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     try {
         if (profileData.photoFile) {
-            // The image will be stored in 'profile-pictures/{user.uid}'
-            // This overwrites any existing file, which is what we want.
             const storageRef = ref(storage, `profile-pictures/${user.uid}`);
             await uploadBytes(storageRef, profileData.photoFile);
             const downloadURL = await getDownloadURL(storageRef);
@@ -250,7 +249,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         
         await updateDoc(userDocRef, updates);
 
-        // Update local user state to reflect changes immediately
         setUser(prevUser => {
             if (!prevUser) return null;
             return { 
@@ -264,10 +262,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("Error al actualizar el perfil: ", error);
         toast({
           title: 'Error al actualizar',
-          description: 'No se pudo guardar tu perfil. Revisa tu conexión a internet y las reglas de seguridad de Firebase Storage.',
+          description: 'No se pudo guardar tu perfil. Revisa tu conexión y las reglas de seguridad de Firebase Storage.',
           variant: 'destructive',
         });
-        // Re-throw the error so the calling form knows about the failure
         throw error;
     }
   };
@@ -339,6 +336,31 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     toast({ title: 'Éxito', description: 'Transacción añadida.' });
   };
   
+  const addMultipleTransactions = async (transactionsToAdd: Omit<Transaction, 'id'>[]) => {
+    if (user && db) {
+        const batch = writeBatch(db);
+        const newTransactionsForState: Transaction[] = [];
+
+        transactionsToAdd.forEach(transaction => {
+            const docRef = doc(collection(db, 'users', user.uid, 'transactions'));
+            const cleanedTransaction = cleanDataForFirestore(transaction);
+            batch.set(docRef, cleanedTransaction);
+            newTransactionsForState.push({ ...transaction, id: docRef.id });
+        });
+
+        try {
+            await batch.commit();
+            setFbTransactions(prev => [...newTransactionsForState, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        } catch (error) {
+            console.error("Error al añadir transacciones en lote: ", error);
+            throw new Error("No se pudieron guardar las transacciones.");
+        }
+    } else {
+        const newTransactions = transactionsToAdd.map(t => ({ ...t, id: `trans-${Date.now()}-${Math.random()}` }));
+        setLocalTransactions(prev => [...newTransactions, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    }
+  };
+
   const editTransaction = async (id: string, updatedTransaction: Omit<Transaction, 'id'>) => {
     if (user && db) {
         const cleanedTransaction = cleanDataForFirestore(updatedTransaction);
@@ -444,6 +466,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     addBudget,
     transactions,
     addTransaction,
+    addMultipleTransactions,
     editTransaction,
     deleteTransaction,
     accounts,

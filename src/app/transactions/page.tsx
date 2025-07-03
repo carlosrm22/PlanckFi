@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search, Plus } from 'lucide-react';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search, Plus, FileUp, Loader2 } from 'lucide-react';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -109,16 +109,18 @@ export default function TransactionsPage() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('all');
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode } = useAppData();
+  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode, addMultipleTransactions } = useAppData();
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
@@ -340,6 +342,123 @@ export default function TransactionsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  
+  const handleImportClick = () => {
+    importFileInputRef.current?.click();
+  };
+
+  const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target?.result as string;
+      if (!text) {
+        toast({
+          variant: 'destructive',
+          title: 'Error de archivo',
+          description: 'No se pudo leer el archivo seleccionado.',
+        });
+        setIsImporting(false);
+        return;
+      }
+      
+      const rows = text.split('\n').filter(row => row.trim() !== '');
+      const headerRow = rows.shift()?.trim() || '';
+      // Handle potential BOM character in UTF-8 CSVs from Excel
+      const header = headerRow.replace(/^\uFEFF/, '').split(',').map(h => h.trim());
+      const expectedHeader = ['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto'];
+
+      if (JSON.stringify(header) !== JSON.stringify(expectedHeader)) {
+         toast({
+          variant: 'destructive',
+          title: 'Formato de CSV incorrecto',
+          description: `Las cabeceras deben ser: ${expectedHeader.join(', ')}.`,
+        });
+        setIsImporting(false);
+        return;
+      }
+
+      const transactionsToImport: Omit<Transaction, 'id'>[] = [];
+      let skippedRows = 0;
+      const allCategoryNames = categories.map(c => c.name);
+
+      for (const row of rows) {
+          const values = row.trim().split(',');
+          if (values.length !== 5) {
+              skippedRows++;
+              continue;
+          }
+
+          const [dateStr, description, category, typeStr, amountStr] = values;
+          
+          const amount = parseFloat(amountStr);
+          const date = new Date(dateStr);
+          const type = typeStr.trim().toLowerCase() === 'ingreso' ? 'income' : 'expense';
+          
+          if (
+            isNaN(amount) ||
+            isNaN(date.getTime()) ||
+            !description ||
+            !category ||
+            !typeStr ||
+            (type === 'expense' && !allCategoryNames.includes(category)) ||
+            (type === 'income' && category !== 'Ingresos')
+          ) {
+            skippedRows++;
+            continue;
+          }
+
+          transactionsToImport.push({
+              date: date.toISOString(),
+              description: description.replace(/"/g, ''),
+              category,
+              type,
+              amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
+          });
+      }
+
+      if (transactionsToImport.length > 0) {
+        try {
+          await addMultipleTransactions(transactionsToImport);
+          toast({
+              title: "Importación Completada",
+              description: `Se importaron ${transactionsToImport.length} transacciones. ${skippedRows > 0 ? `${skippedRows} filas fueron ignoradas.` : ''}`
+          });
+        } catch (error) {
+           console.error("Error al importar transacciones", error);
+            toast({
+                variant: 'destructive',
+                title: 'Error de importación',
+                description: 'No se pudieron guardar las transacciones. Por favor, inténtalo de nuevo.',
+            });
+        }
+      } else {
+         toast({
+            variant: 'destructive',
+            title: 'Importación vacía',
+            description: `No se encontraron transacciones válidas. Se ignoraron ${rows.length} filas.`,
+        });
+      }
+      
+      setIsImporting(false);
+    };
+    
+    reader.onerror = () => {
+        toast({
+            variant: 'destructive',
+            title: 'Error de archivo',
+            description: 'Hubo un problema al leer el archivo.',
+        });
+        setIsImporting(false);
+    };
+    
+    reader.readAsText(file);
+    event.target.value = '';
   };
 
 
@@ -628,6 +747,26 @@ export default function TransactionsPage() {
                     </Form>
                 </DialogContent>
                 </Dialog>
+                <Button variant="outline" onClick={handleImportClick} disabled={isImporting} className="w-full sm:w-auto">
+                  {isImporting ? (
+                      <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Importando...
+                      </>
+                  ) : (
+                      <>
+                          <FileUp className="mr-2 h-4 w-4" />
+                          Importar CSV
+                      </>
+                  )}
+                </Button>
+                <input
+                    type="file"
+                    ref={importFileInputRef}
+                    onChange={handleImportCSV}
+                    className="hidden"
+                    accept=".csv"
+                />
                 <Button variant="outline" onClick={handleExportCSV} className="w-full sm:w-auto">
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
                     Exportar CSV
