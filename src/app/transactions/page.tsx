@@ -360,7 +360,7 @@ export default function TransactionsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'plantilla_transacciones.csv');
+    link.setAttribute('download', 'PlanckFi_plantilla_transacciones.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
