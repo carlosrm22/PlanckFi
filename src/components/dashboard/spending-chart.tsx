@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -46,7 +47,7 @@ export function SpendingChart() {
     // Create a stable color map for categories
     const categoryColorMap = categories.reduce((acc, category, index) => {
         // Use the 5 predefined chart colors, cycling through them
-        acc[category.name] = `var(--chart-${(index % 5) + 1})`;
+        acc[category.name] = `hsl(var(--chart-${(index % 5) + 1}))`;
         return acc;
     }, {} as Record<string, string>);
 
@@ -103,6 +104,7 @@ export function SpendingChart() {
                 nameKey="category"
                 innerRadius="60%"
                 strokeWidth={5}
+                stroke="hsl(var(--card))"
               >
                   {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
