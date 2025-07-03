@@ -16,6 +16,7 @@ export interface Transaction {
   category: string;
   type: 'income' | 'expense';
   receiptImageUrl?: string;
+  account?: string;
 }
 
 export interface BudgetGoal {

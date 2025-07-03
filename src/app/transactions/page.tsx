@@ -91,6 +91,7 @@ const transactionFormSchema = z.object({
   type: z.enum(['income', 'expense'], {
     required_error: 'El tipo es obligatorio.',
   }),
+  account: z.string().optional(),
   receiptImageUrl: z.string().optional(),
 });
 
@@ -120,7 +121,7 @@ export default function TransactionsPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode, addMultipleTransactions } = useAppData();
+  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory, isDemoMode, addMultipleTransactions, accounts } = useAppData();
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
@@ -130,6 +131,7 @@ export default function TransactionsPage() {
         date: new Date(),
         type: 'expense',
         category: '',
+        account: undefined,
         receiptImageUrl: undefined,
     },
   });
@@ -154,7 +156,8 @@ export default function TransactionsPage() {
       const lowercasedQuery = searchQuery.toLowerCase();
       transactionsToFilter = transactionsToFilter.filter(t =>
         t.description.toLowerCase().includes(lowercasedQuery) ||
-        t.category.toLowerCase().includes(lowercasedQuery)
+        t.category.toLowerCase().includes(lowercasedQuery) ||
+        t.account?.toLowerCase().includes(lowercasedQuery)
       );
     }
 
@@ -179,6 +182,7 @@ export default function TransactionsPage() {
         ...editingTransaction,
         amount: Math.abs(editingTransaction.amount),
         date: new Date(editingTransaction.date),
+        account: editingTransaction.account || undefined,
         receiptImageUrl: editingTransaction.receiptImageUrl || undefined,
       });
     } else {
@@ -188,6 +192,7 @@ export default function TransactionsPage() {
             date: new Date(),
             type: 'expense',
             category: '',
+            account: undefined,
             receiptImageUrl: undefined,
         });
     }
@@ -252,6 +257,7 @@ export default function TransactionsPage() {
       date: values.date.toISOString(),
       category: finalCategory,
       type: values.type,
+      account: values.account,
       receiptImageUrl: values.receiptImageUrl,
     };
 
@@ -320,7 +326,7 @@ export default function TransactionsPage() {
   };
   
   const handleExportCSV = () => {
-    const headers = ['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto'];
+    const headers = ['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto', 'Cuenta'];
     const csvRows = [
       headers.join(','),
       ...filteredTransactions.map(t => {
@@ -329,7 +335,8 @@ export default function TransactionsPage() {
         const category = t.category;
         const type = t.type === 'income' ? 'Ingreso' : 'Gasto';
         const amount = t.amount;
-        return [date, description, category, type, amount].join(',');
+        const account = t.account ? `"${t.account.replace(/"/g, '""')}"` : '';
+        return [date, description, category, type, amount, account].join(',');
       })
     ];
 
@@ -349,11 +356,11 @@ export default function TransactionsPage() {
   };
   
   const handleDownloadTemplate = () => {
-    const headers = 'Fecha,Descripción,Categoría,Tipo,Monto';
+    const headers = 'Fecha,Descripción,Categoría,Tipo,Monto,Cuenta';
     const exampleRows = [
-      '2024-07-26,Compra en supermercado,Comestibles,Gasto,85.40',
-      '2024-07-28,Salario,Ingresos,Ingreso,2000.00',
-      '2024-07-29,Suscripción a Spotify,Entretenimiento,Gasto,10.99'
+      '2024-07-26,Compra en supermercado,Comestibles,Gasto,85.40,Cuenta de Prueba',
+      '2024-07-28,Salario,Ingresos,Ingreso,2000.00,Cuenta de Prueba',
+      '2024-07-29,Suscripción a Spotify,Entretenimiento,Gasto,10.99,Cuenta de Prueba'
     ];
     const csvContent = [headers, ...exampleRows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -389,7 +396,7 @@ export default function TransactionsPage() {
       const headerRow = rows.shift()?.trim() || '';
       // Handle potential BOM character in UTF-8 CSVs from Excel
       const header = headerRow.replace(/^\uFEFF/, '').split(',').map(h => h.trim());
-      const expectedHeader = ['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto'];
+      const expectedHeader = ['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto', 'Cuenta'];
 
       if (JSON.stringify(header) !== JSON.stringify(expectedHeader)) {
          toast({
@@ -407,16 +414,17 @@ export default function TransactionsPage() {
 
       for (const row of rows) {
           const values = row.trim().split(',');
-          if (values.length !== 5) {
+          if (values.length !== 6) {
               skippedRows++;
               continue;
           }
 
-          const [dateStr, description, category, typeStr, amountStr] = values;
+          const [dateStr, description, category, typeStr, amountStr, accountStr] = values;
           
           const amount = parseFloat(amountStr);
           const date = new Date(dateStr);
           const type = typeStr.trim().toLowerCase() === 'ingreso' ? 'income' : 'expense';
+          const account = accountStr?.trim();
           
           if (
             isNaN(amount) ||
@@ -437,6 +445,7 @@ export default function TransactionsPage() {
               category,
               type,
               amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
+              account: account || undefined,
           });
       }
 
@@ -676,6 +685,38 @@ export default function TransactionsPage() {
                         )}
 
                         <FormField
+                          control={form.control}
+                          name="account"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cuenta (Opcional)</FormLabel>
+                               <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  defaultValue={field.value}
+                                >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona una cuenta" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {accounts.map((account) => (
+                                    <SelectItem
+                                      key={account.id}
+                                      value={account.name}
+                                    >
+                                      {account.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
                         control={form.control}
                         name="date"
                         render={({ field }) => (
@@ -797,7 +838,7 @@ export default function TransactionsPage() {
                 <FileText className="h-4 w-4" />
                 <AlertTitle>¿Quieres importar transacciones?</AlertTitle>
                 <AlertDescription>
-                    Usa un archivo CSV con las columnas: Fecha, Descripción, Categoría, Tipo, Monto. Descarga nuestra plantilla para asegurar el formato correcto.
+                    Usa un archivo CSV con las columnas: Fecha, Descripción, Categoría, Tipo, Monto, Cuenta. Descarga nuestra plantilla para asegurar el formato correcto.
                 </AlertDescription>
             </Alert>
           <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
@@ -805,7 +846,7 @@ export default function TransactionsPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Buscar por descripción o categoría..."
+                placeholder="Buscar por descripción, categoría o cuenta..."
                 className="w-full pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -833,6 +874,7 @@ export default function TransactionsPage() {
                     <TableHead>Fecha</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Categoría</TableHead>
+                    <TableHead>Cuenta</TableHead>
                     <TableHead>Recibo</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -852,6 +894,9 @@ export default function TransactionsPage() {
                         </TableCell>
                         <TableCell>
                             <Badge variant="outline">{transaction.category}</Badge>
+                        </TableCell>
+                        <TableCell>
+                           {transaction.account || <span className="text-muted-foreground">-</span>}
                         </TableCell>
                         <TableCell>
                             {transaction.receiptImageUrl ? (
@@ -900,7 +945,7 @@ export default function TransactionsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                         No se encontraron transacciones.
                       </TableCell>
                     </TableRow>
