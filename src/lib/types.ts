@@ -24,7 +24,7 @@ export interface BudgetGoal {
   color: string;
 }
 
-export interface Bill {
+export interface PendingPayment {
   id: string;
   name: string;
   amount: number;

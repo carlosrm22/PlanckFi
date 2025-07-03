@@ -61,8 +61,8 @@ export default function SettingsPage() {
              </div>
              <div className="flex items-center justify-between">
                 <div>
-                    <p className="font-medium">Alertas de facturas</p>
-                    <p className="text-sm text-muted-foreground">Recibe un aviso cuando una factura esté por vencer.</p>
+                    <p className="font-medium">Alertas de pagos pendientes</p>
+                    <p className="text-sm text-muted-foreground">Recibe un aviso cuando un pago esté por vencer.</p>
                 </div>
                 <Switch id="bill-alerts" defaultChecked/>
              </div>

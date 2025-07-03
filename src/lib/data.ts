@@ -1,4 +1,4 @@
-import type { BudgetGoal, Bill, Category, Transaction, Account } from "@/lib/types";
+import type { BudgetGoal, PendingPayment, Category, Transaction, Account } from "@/lib/types";
 import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark } from "lucide-react";
 
 export const categories: Category[] = [
@@ -35,7 +35,7 @@ export const budgetGoals: BudgetGoal[] = [
   { category: "Salud", icon: HeartPulse, budgeted: 200, spent: 210, color: "var(--chart-4)" },
 ];
 
-export const bills: Bill[] = [
+export const pendingPayments: PendingPayment[] = [
     { id: 'b1', name: "Netflix", amount: 15.99, dueDay: 25, category: "Entretenimiento" },
     { id: 'b2', name: "Factura de Electricidad", amount: 75.50, dueDay: 28, category: "Servicios" },
     { id: 'b3', name: "Alquiler", amount: 1200, dueDay: 1, category: "Alquiler" },

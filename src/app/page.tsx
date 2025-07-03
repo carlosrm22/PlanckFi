@@ -3,7 +3,7 @@ import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import { OverviewCards } from "@/components/dashboard/overview-cards";
 import { SpendingChart } from "@/components/dashboard/spending-chart";
 import { BudgetGoals } from "@/components/dashboard/budget-goals";
-import { UpcomingBills } from "@/components/dashboard/upcoming-bills";
+import { UpcomingPendingPayments } from "@/components/dashboard/upcoming-bills";
 import { AISuggestions } from "@/components/dashboard/ai-suggestions";
 
 export default function Home() {
@@ -19,7 +19,7 @@ export default function Home() {
           <BudgetGoals />
         </div>
         <div className="grid gap-6">
-          <UpcomingBills />
+          <UpcomingPendingPayments />
         </div>
         <div className="grid gap-6">
           <AISuggestions />
