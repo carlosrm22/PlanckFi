@@ -10,20 +10,20 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
-export const BudgetSuggestionsInputSchema = z.object({
+const BudgetSuggestionsInputSchema = z.object({
   monthlyIncome: z.number().describe('The user\'s total monthly income after taxes.'),
   financialGoals: z.string().describe('The user\'s financial goals, like saving for a car or paying off debt.'),
   existingCategories: z.array(z.string()).describe('A list of existing spending categories the user has.'),
 });
 export type BudgetSuggestionsInput = z.infer<typeof BudgetSuggestionsInputSchema>;
 
-export const BudgetSuggestionSchema = z.object({
+const BudgetSuggestionSchema = z.object({
     category: z.string().describe('The spending category for the budget suggestion.'),
     amount: z.number().describe('The suggested monthly budget amount for this category.'),
     justification: z.string().describe('A brief explanation for why this amount was suggested.'),
 });
 
-export const BudgetSuggestionsOutputSchema = z.object({
+const BudgetSuggestionsOutputSchema = z.object({
   suggestions: z.array(BudgetSuggestionSchema).describe('A list of budget suggestions.'),
 });
 export type BudgetSuggestionsOutput = z.infer<typeof BudgetSuggestionsOutputSchema>;
