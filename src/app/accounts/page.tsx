@@ -246,7 +246,7 @@ export default function AccountsPage() {
             const Icon = accountIcons[account.type];
             return (
               <Card key={account.id}>
-                <CardContent className="flex items-center justify-between p-4">
+                <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4">
                   <div className="flex items-center gap-4">
                     <Icon className="h-8 w-8 text-muted-foreground" />
                     <div>
@@ -256,8 +256,8 @@ export default function AccountsPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-right">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <div className="text-left sm:text-right">
                       <p className="text-lg font-bold">
                          {new Intl.NumberFormat("es-ES", {
                             style: "currency",

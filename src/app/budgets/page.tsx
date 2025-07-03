@@ -108,11 +108,11 @@ export default function BudgetsPage() {
               Gestiona tus metas de gasto mensuales.
             </p>
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <AIBudgetAssistant />
             <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full md:w-auto">
+                <Button className="w-full sm:w-auto">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Crear Manualmente
                 </Button>

@@ -108,7 +108,7 @@ export function UpcomingPendingPayments() {
               {upcomingPayments.map((payment) => {
                 const Icon = payment.icon;
                 return (
-                  <li key={payment.id} className="flex items-center justify-between">
+                  <li key={payment.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-4">
                       {Icon && (
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
@@ -122,8 +122,8 @@ export function UpcomingPendingPayments() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <p className="font-semibold text-right">${payment.amount.toFixed(2)}</p>
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-between">
+                        <p className="font-semibold text-left sm:text-right">${payment.amount.toFixed(2)}</p>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">

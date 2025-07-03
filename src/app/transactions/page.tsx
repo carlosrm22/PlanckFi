@@ -323,7 +323,7 @@ export default function TransactionsPage() {
                 Una lista de tus transacciones recientes.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
                 <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) setEditingTransaction(null); }}>
                 <DialogTrigger asChild>
                     <Button className="w-full sm:w-auto">
@@ -548,7 +548,7 @@ export default function TransactionsPage() {
                     </Form>
                 </DialogContent>
                 </Dialog>
-                <Button variant="outline" onClick={handleExportCSV}>
+                <Button variant="outline" onClick={handleExportCSV} className="w-full sm:w-auto">
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
                     Exportar CSV
                 </Button>
@@ -582,7 +582,7 @@ export default function TransactionsPage() {
               </Select>
             </div>
           </div>
-          <div className="border rounded-md">
+          <div className="border rounded-md overflow-x-auto">
             <Table>
                 <TableHeader>
                 <TableRow>

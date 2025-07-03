@@ -52,15 +52,15 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-             <div className="flex items-center justify-between">
-                <div>
+             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
+                <div className="w-full sm:w-auto">
                     <p className="font-medium">Resumen semanal</p>
                     <p className="text-sm text-muted-foreground">Recibe un resumen de tu actividad por correo.</p>
                 </div>
                 <Switch id="weekly-summary" />
              </div>
-             <div className="flex items-center justify-between">
-                <div>
+             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
+                <div className="w-full sm:w-auto">
                     <p className="font-medium">Alertas de pagos pendientes</p>
                     <p className="text-sm text-muted-foreground">Recibe un aviso cuando un pago esté por vencer.</p>
                 </div>

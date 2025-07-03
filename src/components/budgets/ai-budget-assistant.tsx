@@ -107,7 +107,7 @@ export function AIBudgetAssistant() {
   return (
     <Dialog open={dialogOpen} onOpenChange={open => { setDialogOpen(open); if(!open) { setSuggestions(null); form.reset(); }}}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full md:w-auto">
+        <Button variant="outline" className="w-full sm:w-auto">
           <Wand2 className="mr-2 h-4 w-4" />
           Crear presupuesto con IA
         </Button>
