@@ -484,7 +484,7 @@ export default function TransactionsPage() {
                                         </Select>
                                         <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
                                             <DialogTrigger asChild>
-                                                <Button variant="outline" size="icon" className="shrink-0">
+                                                <Button type="button" variant="outline" size="icon" className="shrink-0">
                                                     <Plus className="h-4 w-4" />
                                                     <span className="sr-only">Añadir nueva categoría</span>
                                                 </Button>
@@ -784,7 +784,7 @@ export default function TransactionsPage() {
                     <AlertTitle>Error de Permisos</AlertTitle>
                     <AlertDescription>
                         Por favor, permite el acceso a la cámara en tu navegador para usar esta función.
-                    </Description>
+                    </AlertDescription>
                 </Alert>
             )}
             <DialogFooter>
