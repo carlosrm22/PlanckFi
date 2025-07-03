@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -10,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -64,7 +64,7 @@ export function CategoryManagement() {
 
   function onEditSubmit(values: z.infer<typeof formSchema>) {
     if (currentCategory) {
-      editCategory(currentCategory.name, values.name);
+      editCategory(currentCategory.id, values.name);
       setEditOpen(false);
       setCurrentCategory(null);
       editForm.reset();
@@ -83,10 +83,10 @@ export function CategoryManagement() {
         <CardTitle>Categorías</CardTitle>
         <CardDescription>Gestiona tus categorías de gastos.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {categories.map((category) => (
+      <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {categories.filter(c => c.name !== 'Ingresos').map((category) => (
           <div
-            key={category.name}
+            key={category.id}
             className="relative group flex flex-col items-center justify-center gap-2 p-4 border rounded-lg bg-card"
           >
             <Button

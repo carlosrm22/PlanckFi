@@ -1,6 +1,8 @@
+
 import type { LucideIcon } from "lucide-react";
 
 export interface Category {
+  id: string;
   name: string;
   icon: LucideIcon;
   color: string;
@@ -17,6 +19,7 @@ export interface Transaction {
 }
 
 export interface BudgetGoal {
+  id: string;
   category: string;
   icon: LucideIcon;
   budgeted: number;
