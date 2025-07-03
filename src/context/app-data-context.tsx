@@ -8,8 +8,9 @@ import { format } from 'date-fns';
 import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark, Tag, Loader2, AlertTriangle } from "lucide-react";
 import type { Category, BudgetGoal, Transaction, Account, PendingPayment } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db, isConfigured } from '@/lib/firebase';
+import { auth, db, isConfigured, storage } from '@/lib/firebase';
 import { type User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   collection,
   doc,
@@ -30,6 +31,7 @@ interface AppUser {
   uid: string;
   email: string | null;
   displayName: string | null;
+  photoURL?: string | null;
 }
 
 // --- Demo Data ---
@@ -57,7 +59,7 @@ const demoBudgets: Omit<BudgetGoal, 'id' | 'spent'>[] = [
 interface AppDataContextType {
   user: AppUser | null;
   signOut: () => void;
-  updateUserProfile: (profileData: { displayName: string; }) => Promise<void>;
+  updateUserProfile: (profileData: { displayName: string; photoFile?: File }) => Promise<void>;
   categories: Category[];
   addCategory: (name: string) => Promise<void>;
   editCategory: (id: string, newName: string) => Promise<void>;
@@ -156,6 +158,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 displayName: userData.name || '',
+                photoURL: userData.photoURL || null,
             });
         } else {
             console.warn("User document not found in Firestore, creating one.");
@@ -163,11 +166,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             await setDoc(userDocRef, {
                 name: defaultName,
                 email: firebaseUser.email,
+                photoURL: null,
             });
              setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 displayName: defaultName,
+                photoURL: null,
             });
         }
       } else {
@@ -221,15 +226,32 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserProfile = async (profileData: { displayName: string }) => {
-    if (!user || !db) {
+  const updateUserProfile = async (profileData: { displayName: string; photoFile?: File }) => {
+    if (!user || !db || !storage) {
       throw new Error("Usuario no autenticado.");
     }
     const userDocRef = doc(db, 'users', user.uid);
-    await updateDoc(userDocRef, { name: profileData.displayName });
+    
+    const updates: { name: string; photoURL?: string } = { name: profileData.displayName };
+    let newPhotoURL = user.photoURL;
+
+    if (profileData.photoFile) {
+        const storageRef = ref(storage, `profile-pictures/${user.uid}`);
+        await uploadBytes(storageRef, profileData.photoFile);
+        const downloadURL = await getDownloadURL(storageRef);
+        updates.photoURL = downloadURL;
+        newPhotoURL = downloadURL;
+    }
+    
+    await updateDoc(userDocRef, updates);
+
     setUser(prevUser => {
         if (!prevUser) return null;
-        return { ...prevUser, displayName: profileData.displayName };
+        return { 
+            ...prevUser, 
+            displayName: profileData.displayName,
+            photoURL: newPhotoURL,
+        };
     });
   };
   

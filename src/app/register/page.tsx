@@ -14,7 +14,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/icons';
 import { initialCategoriesData } from '@/lib/data';
 
@@ -50,7 +49,8 @@ export default function RegisterPage() {
             const userDocRef = doc(db, 'users', user.uid);
             batch.set(userDocRef, {
                 email: user.email,
-                name: user.email?.split('@')[0] || 'Nuevo Usuario'
+                name: user.email?.split('@')[0] || 'Nuevo Usuario',
+                photoURL: null,
             });
 
             // Create initial categories for the user

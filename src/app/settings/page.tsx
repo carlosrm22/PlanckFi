@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -27,9 +27,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAppData } from '@/context/app-data-context';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Camera } from 'lucide-react';
 
 const profileFormSchema = z.object({
   name: z.string().min(1, { message: "El nombre es obligatorio." }),
@@ -39,6 +40,10 @@ export default function SettingsPage() {
   const { user, updateUserProfile, isDemoMode } = useAppData();
   const { toast } = useToast();
   const router = useRouter();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -63,17 +68,38 @@ export default function SettingsPage() {
       form.reset({
         name: user.displayName || "",
       });
+      setPreviewUrl(user.photoURL || null);
     }
   }, [user, form]);
   
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
     if (!user || !updateUserProfile) return;
     try {
-      await updateUserProfile({ displayName: values.name });
+      await updateUserProfile({ 
+        displayName: values.name,
+        ...(photoFile && { photoFile })
+      });
       toast({
         title: '¡Éxito!',
         description: 'Tu perfil ha sido actualizado.',
       });
+      setPhotoFile(null); // Reset file after upload
     } catch (error) {
       toast({
         title: 'Error',
@@ -94,6 +120,11 @@ export default function SettingsPage() {
       );
   }
 
+  const getInitials = (email: string | null | undefined) => {
+    if (!email) return 'P';
+    return email[0].toUpperCase();
+  }
+
   return (
     <AppShell>
       <div className="grid gap-8 max-w-2xl mx-auto">
@@ -112,7 +143,31 @@ export default function SettingsPage() {
                   Esta es la información asociada a tu cuenta.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <Avatar className="h-20 w-20 cursor-pointer" onClick={handleAvatarClick}>
+                        <AvatarImage src={previewUrl ?? undefined} alt="Avatar de usuario" />
+                        <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
+                    </Avatar>
+                    <div className="absolute bottom-0 right-0 rounded-full bg-primary p-1.5 text-primary-foreground cursor-pointer hover:bg-primary/90" onClick={handleAvatarClick}>
+                        <Camera className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <div>
+                    <Button type="button" variant="outline" onClick={handleAvatarClick}>
+                        Subir Foto
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">JPG, PNG. Máx 5MB.</p>
+                  </div>
+                  <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept="image/png, image/jpeg"
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="name"
