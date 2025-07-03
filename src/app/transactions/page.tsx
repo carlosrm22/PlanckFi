@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -538,7 +537,7 @@ export default function TransactionsPage() {
                             <FormItem>
                             <FormLabel>Recibo (Opcional)</FormLabel>
                             <FormControl>
-                                <>
+                                <div>
                                 {field.value ? (
                                     <div className="relative w-full h-40 border rounded-md">
                                     <Image src={field.value} alt="Vista previa del recibo" fill style={{ objectFit: 'contain' }} />
@@ -565,7 +564,7 @@ export default function TransactionsPage() {
                                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*" />
                                     </div>
                                 )}
-                                </>
+                                </div>
                             </FormControl>
                             <FormMessage />
                             </FormItem>
