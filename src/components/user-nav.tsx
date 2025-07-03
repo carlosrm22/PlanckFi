@@ -64,7 +64,7 @@ export function UserNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-3 p-1 pr-2 h-auto rounded-lg focus-visible:ring-2 focus-visible:ring-ring">
-            <div className="hidden sm:flex flex-col items-end">
+            <div className="flex flex-col items-end">
                 <p className="text-sm font-medium leading-none">{user.displayName || 'Usuario'}</p>
                 <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
