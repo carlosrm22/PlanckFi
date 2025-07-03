@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark, Tag, Loader2, AlertTriangle } from "lucide-react";
 import type { Category, BudgetGoal, Transaction, Account, PendingPayment } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db, isConfigured, firebaseConfig } from '@/lib/firebase';
+import { auth, db, isConfigured } from '@/lib/firebase';
 import { type User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import {
   collection,
@@ -18,15 +18,31 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  orderBy,
-  where,
-  runTransaction
+  orderBy
 } from 'firebase/firestore';
+import { initialCategoriesData } from '@/lib/data';
 
+// --- Demo Data ---
+const iconMap = { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark, Tag };
+const demoCategories = initialCategoriesData.map((c, i) => ({ ...c, id: `cat-${i}`, icon: iconMap[c.icon as keyof typeof iconMap] || Tag }));
+const demoAccounts: Account[] = [
+  { id: 'acc1', name: 'Cuenta de Prueba', type: 'Checking', provider: 'Banco Demo', balance: 2540.50, lastFour: '1234' },
+  { id: 'acc2', name: 'Ahorros Demo', type: 'Savings', provider: 'Banco Demo', balance: 8200.00, lastFour: '5678' },
+];
+const demoTransactions: Transaction[] = [
+    { id: 't1', description: 'Ingreso de demostración', amount: 3500, date: new Date(new Date().setDate(1)).toISOString(), category: 'Ingresos', type: 'income' },
+    { id: 't2', description: 'Compra en supermercado', amount: -125.50, date: new Date(new Date().setDate(5)).toISOString(), category: 'Comestibles', type: 'expense' },
+    { id: 't3', description: 'Pago de alquiler', amount: -1200, date: new Date(new Date().setDate(2)).toISOString(), category: 'Alquiler', type: 'expense' },
+];
+const demoPendingPayments: PendingPayment[] = [
+    { id: 'pp1', name: 'Suscripción de prueba', amount: 15.00, dueDay: 15, category: 'Entretenimiento' },
+];
+const demoBudgets: Omit<BudgetGoal, 'id' | 'spent'>[] = [
+    { category: 'Comestibles', icon: ShoppingCart, budgeted: 400, color: 'var(--chart-1)'},
+    { category: 'Transporte', icon: Car, budgeted: 150, color: 'var(--chart-2)'},
+];
+// --- End Demo Data ---
 
-const iconMap = {
-    ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark, Tag
-};
 
 interface AppDataContextType {
   user: User | null;
@@ -70,15 +86,6 @@ function FirebaseNotConfigured() {
                 <p className="mt-2 text-destructive-foreground/80">
                     Parece que no has configurado las credenciales de Firebase. Para que la aplicación funcione, necesitas crear un proyecto en Firebase y añadir las claves a tu archivo <strong>.env</strong>.
                 </p>
-                <div className="mt-6 text-left bg-destructive/20 p-4 rounded-md text-sm font-mono text-destructive-foreground overflow-x-auto">
-                    <p>NEXT_PUBLIC_FIREBASE_API_KEY=...
-                    </p>
-                    <p>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...</p>
-                    <p>NEXT_PUBLIC_FIREBASE_PROJECT_ID=...</p>
-                    <p>NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...</p>
-                    <p>NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...</p>
-                    <p>NEXT_PUBLIC_FIREBASE_APP_ID=...</p>
-                </div>
                  <p className="mt-4 text-sm text-destructive-foreground/80">
                     Puedes obtener estas claves en la configuración de tu proyecto de Firebase.
                 </p>
@@ -91,18 +98,25 @@ function FirebaseNotConfigured() {
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [budgets, setBudgets] = useState<BudgetGoal[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
-  
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
 
-  // --- Auth Effect ---
+  // Local/Demo state
+  const [localCategories, setLocalCategories] = useState<Category[]>(demoCategories);
+  const [localAccounts, setLocalAccounts] = useState<Account[]>(demoAccounts);
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(demoTransactions);
+  const [localPendingPayments, setLocalPendingPayments] = useState<PendingPayment[]>(demoPendingPayments);
+  const [localBudgets, setLocalBudgets] = useState<Omit<BudgetGoal, 'id' | 'spent'>[]>(demoBudgets);
+
+  // Firebase state
+  const [fbCategories, setFbCategories] = useState<Category[]>([]);
+  const [fbAccounts, setFbAccounts] = useState<Account[]>([]);
+  const [fbTransactions, setFbTransactions] = useState<Transaction[]>([]);
+  const [fbPendingPayments, setFbPendingPayments] = useState<PendingPayment[]>([]);
+  const [fbBudgets, setFbBudgets] = useState<BudgetGoal[]>([]);
+
+  // Auth Effect
   useEffect(() => {
     if (!isConfigured || !auth) {
         setLoading(false);
@@ -115,16 +129,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  // --- Data Fetching Effect ---
+  // Data Fetching Effect for logged-in users
   useEffect(() => {
     if (user && db) {
         const fetchData = async () => {
             const [
-                categoriesSnapshot, 
-                accountsSnapshot, 
-                pendingPaymentsSnapshot, 
-                budgetsSnapshot, 
-                transactionsSnapshot
+                categoriesSnapshot, accountsSnapshot, pendingPaymentsSnapshot, budgetsSnapshot, transactionsSnapshot
             ] = await Promise.all([
                 getDocs(query(collection(db, 'users', user.uid, 'categories'), orderBy('name'))),
                 getDocs(query(collection(db, 'users', user.uid, 'accounts'), orderBy('name'))),
@@ -134,35 +144,26 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             ]);
 
             const categoriesData = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as { name: string; color: string; icon: string } }));
-            setCategories(categoriesData.map(c => ({...c, icon: iconMap[c.icon as keyof typeof iconMap] || Tag })));
-            
-            setAccounts(accountsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Account)));
-            setPendingPayments(pendingPaymentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PendingPayment)));
-            setBudgets(budgetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), icon: iconMap[doc.data().icon as keyof typeof iconMap] || Tag } as BudgetGoal)));
-            setTransactions(transactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction)));
+            setFbCategories(categoriesData.map(c => ({...c, icon: iconMap[c.icon as keyof typeof iconMap] || Tag })));
+            setFbAccounts(accountsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Account)));
+            setFbPendingPayments(pendingPaymentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PendingPayment)));
+            setFbBudgets(budgetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), icon: iconMap[doc.data().icon as keyof typeof iconMap] || Tag } as BudgetGoal)));
+            setFbTransactions(transactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction)));
         };
         fetchData();
     } else {
-        // Clear data on logout
-        setCategories([]);
-        setAccounts([]);
-        setPendingPayments([]);
-        setBudgets([]);
-        setTransactions([]);
+        setFbCategories([]); setFbAccounts([]); setFbTransactions([]); setFbPendingPayments([]); setFbBudgets([]);
     }
   }, [user]);
 
-  // Auth Guard
+  // Auth Guard for login/register pages
   useEffect(() => {
-    if (loading || !isConfigured) return;
+    if (loading) return;
     const isAuthPage = pathname === '/login' || pathname === '/register';
-    if (!user && !isAuthPage) {
-      router.push('/login');
-    }
     if (user && isAuthPage) {
       router.push('/');
     }
-  }, [user, loading, pathname, router, isConfigured]);
+  }, [user, loading, pathname, router]);
 
   const signOut = async () => {
     if (auth) {
@@ -170,111 +171,162 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       router.push('/login');
     }
   };
+  
+  const isDemoMode = !user;
+  
+  // --- Data selectors ---
+  const categories = isDemoMode ? localCategories : fbCategories;
+  const accounts = isDemoMode ? localAccounts : fbAccounts;
+  const transactions = isDemoMode ? localTransactions : fbTransactions;
+  const pendingPayments = isDemoMode ? localPendingPayments : fbPendingPayments;
 
-  // --- Firestore Data Management ---
+  // --- CRUD Operations ---
   const addCategory = async (name: string) => {
-    if (!user || !db) return;
-    if (categories.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+    if(categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
         toast({ title: 'Error', description: 'La categoría ya existe.', variant: 'destructive' });
         return;
     }
-    const newCategory = { name, icon: 'Tag', color: 'text-gray-500' };
-    const docRef = await addDoc(collection(db, 'users', user.uid, 'categories'), newCategory);
-    setCategories(prev => [...prev, { ...newCategory, id: docRef.id, icon: Tag }].sort((a, b) => a.name.localeCompare(b.name)));
+    const newCategoryData = { name, icon: 'Tag', color: 'text-gray-500' };
+
+    if (user && db) {
+        const docRef = await addDoc(collection(db, 'users', user.uid, 'categories'), newCategoryData);
+        setFbCategories(prev => [...prev, { ...newCategoryData, id: docRef.id, icon: Tag }].sort((a,b) => a.name.localeCompare(b.name)));
+    } else {
+        const newCategory = { ...newCategoryData, id: `cat-${Date.now()}`, icon: Tag };
+        setLocalCategories(prev => [...prev, newCategory].sort((a,b) => a.name.localeCompare(b.name)));
+    }
   };
 
   const editCategory = async (id: string, newName: string) => {
-     if (!user || !db) return;
-     const existingCategory = categories.find(c => c.name.toLowerCase() === newName.toLowerCase() && c.id !== id);
-     if (existingCategory) {
+     if (categories.some(c => c.name.toLowerCase() === newName.toLowerCase() && c.id !== id)) {
         toast({ title: 'Error', description: 'Una categoría con ese nombre ya existe.', variant: 'destructive' });
         return;
      }
-     const docRef = doc(db, 'users', user.uid, 'categories', id);
-     await updateDoc(docRef, { name: newName });
-     setCategories(prev => prev.map(c => c.id === id ? { ...c, name: newName } : c).sort((a, b) => a.name.localeCompare(b.name)));
-     toast({ title: 'Éxito', description: 'Categoría actualizada.' });
+    if (user && db) {
+        const docRef = doc(db, 'users', user.uid, 'categories', id);
+        await updateDoc(docRef, { name: newName });
+        setFbCategories(prev => prev.map(c => c.id === id ? { ...c, name: newName } : c).sort((a, b) => a.name.localeCompare(b.name)));
+    } else {
+        setLocalCategories(prev => prev.map(c => c.id === id ? { ...c, name: newName } : c).sort((a, b) => a.name.localeCompare(b.name)));
+    }
+    toast({ title: 'Éxito', description: 'Categoría actualizada.' });
   }
   
   const addBudget = async (budget: Omit<BudgetGoal, 'id' | 'spent' | 'color'>) => {
-      if (!user || !db) return;
-      if (budgets.some(b => b.category === budget.category)) {
-          toast({ title: 'Error', description: 'Ya existe un presupuesto para esta categoría.', variant: 'destructive' });
-          return;
-      }
-      const newBudget = { ...budget, color: `var(--chart-${(budgets.length % 5) + 1})` };
-      const docRef = await addDoc(collection(db, 'users', user.uid, 'budgets'), newBudget);
-      setBudgets(prev => [...prev, { ...newBudget, id: docRef.id, spent: 0 }]);
+    const existingBudgets = user ? fbBudgets : localBudgets;
+    if (existingBudgets.some(b => b.category === budget.category)) {
+        toast({ title: 'Error', description: 'Ya existe un presupuesto para esta categoría.', variant: 'destructive' });
+        return;
+    }
+    const newBudget = { ...budget, color: `var(--chart-${(existingBudgets.length % 5) + 1})` };
+    if(user && db) {
+        const docRef = await addDoc(collection(db, 'users', user.uid, 'budgets'), newBudget);
+        setFbBudgets(prev => [...prev, { ...newBudget, id: docRef.id, spent: 0 }]);
+    } else {
+        setLocalBudgets(prev => [...prev, newBudget]);
+    }
   };
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
-    if (!user || !db) return;
-    const docRef = await addDoc(collection(db, 'users', user.uid, 'transactions'), transaction);
-    setTransactions(prev => [{ ...transaction, id: docRef.id }, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    if (user && db) {
+        const docRef = await addDoc(collection(db, 'users', user.uid, 'transactions'), transaction);
+        setFbTransactions(prev => [{ ...transaction, id: docRef.id }, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } else {
+        const newTransaction = { ...transaction, id: `trans-${Date.now()}` };
+        setLocalTransactions(prev => [newTransaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    }
     toast({ title: 'Éxito', description: 'Transacción añadida.' });
   };
   
   const editTransaction = async (id: string, updatedTransaction: Omit<Transaction, 'id'>) => {
-      if (!user || !db) return;
-      const docRef = doc(db, 'users', user.uid, 'transactions', id);
-      await updateDoc(docRef, updatedTransaction);
-      setTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-      toast({ title: 'Éxito', description: 'Transacción actualizada.' });
+    if (user && db) {
+        const docRef = doc(db, 'users', user.uid, 'transactions', id);
+        await updateDoc(docRef, updatedTransaction);
+        setFbTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } else {
+        setLocalTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    }
+    toast({ title: 'Éxito', description: 'Transacción actualizada.' });
   };
 
   const deleteTransaction = async (id: string) => {
-      if (!user || !db) return;
-      await deleteDoc(doc(db, 'users', user.uid, 'transactions', id));
-      setTransactions(prev => prev.filter(t => t.id !== id));
-      toast({ title: 'Éxito', description: 'Transacción eliminada.' });
+    if (user && db) {
+        await deleteDoc(doc(db, 'users', user.uid, 'transactions', id));
+        setFbTransactions(prev => prev.filter(t => t.id !== id));
+    } else {
+        setLocalTransactions(prev => prev.filter(t => t.id !== id));
+    }
+    toast({ title: 'Éxito', description: 'Transacción eliminada.' });
   };
   
   const addAccount = async (account: Omit<Account, 'id'>) => {
-      if (!user || !db) return;
-      const docRef = await addDoc(collection(db, 'users', user.uid, 'accounts'), account);
-      setAccounts(prev => [...prev, { ...account, id: docRef.id }].sort((a, b) => a.name.localeCompare(b.name)));
+    if (user && db) {
+        const docRef = await addDoc(collection(db, 'users', user.uid, 'accounts'), account);
+        setFbAccounts(prev => [...prev, { ...account, id: docRef.id }].sort((a, b) => a.name.localeCompare(b.name)));
+    } else {
+        setLocalAccounts(prev => [...prev, { ...account, id: `acc-${Date.now()}` }].sort((a, b) => a.name.localeCompare(b.name)));
+    }
   };
   
   const editAccount = async (id: string, updatedAccount: Omit<Account, 'id'>) => {
-      if (!user || !db) return;
-      await updateDoc(doc(db, 'users', user.uid, 'accounts', id), updatedAccount);
-      setAccounts(prev => prev.map(acc => acc.id === id ? { id, ...updatedAccount } : acc).sort((a, b) => a.name.localeCompare(b.name)));
+    if (user && db) {
+        await updateDoc(doc(db, 'users', user.uid, 'accounts', id), updatedAccount);
+        setFbAccounts(prev => prev.map(acc => acc.id === id ? { id, ...updatedAccount } : acc).sort((a, b) => a.name.localeCompare(b.name)));
+    } else {
+        setLocalAccounts(prev => prev.map(acc => acc.id === id ? { id, ...updatedAccount } : acc).sort((a, b) => a.name.localeCompare(b.name)));
+    }
   };
   
   const deleteAccount = async (id: string) => {
-      if (!user || !db) return;
-      await deleteDoc(doc(db, 'users', user.uid, 'accounts', id));
-      setAccounts(prev => prev.filter(acc => acc.id !== id));
+    if (user && db) {
+        await deleteDoc(doc(db, 'users', user.uid, 'accounts', id));
+        setFbAccounts(prev => prev.filter(acc => acc.id !== id));
+    } else {
+        setLocalAccounts(prev => prev.filter(acc => acc.id !== id));
+    }
   };
   
   const addPendingPayment = async (payment: Omit<PendingPayment, 'id'>) => {
-      if (!user || !db) return;
-      const docRef = await addDoc(collection(db, 'users', user.uid, 'pendingPayments'), payment);
-      setPendingPayments(prev => [...prev, { ...payment, id: docRef.id }].sort((a, b) => a.dueDay - b.dueDay));
+      if (user && db) {
+        const docRef = await addDoc(collection(db, 'users', user.uid, 'pendingPayments'), payment);
+        setFbPendingPayments(prev => [...prev, { ...payment, id: docRef.id }].sort((a, b) => a.dueDay - b.dueDay));
+      } else {
+        setLocalPendingPayments(prev => [...prev, { ...payment, id: `pp-${Date.now()}` }].sort((a, b) => a.dueDay - b.dueDay));
+      }
   };
   
   const editPendingPayment = async (id: string, updatedPayment: Omit<PendingPayment, 'id'>) => {
-      if (!user || !db) return;
-      await updateDoc(doc(db, 'users', user.uid, 'pendingPayments', id), updatedPayment);
-      setPendingPayments(prev => prev.map(p => p.id === id ? { id, ...updatedPayment } : p).sort((a, b) => a.dueDay - b.dueDay));
+      if (user && db) {
+        await updateDoc(doc(db, 'users', user.uid, 'pendingPayments', id), updatedPayment);
+        setFbPendingPayments(prev => prev.map(p => p.id === id ? { id, ...updatedPayment } : p).sort((a, b) => a.dueDay - b.dueDay));
+      } else {
+        setLocalPendingPayments(prev => prev.map(p => p.id === id ? { id, ...updatedPayment } : p).sort((a, b) => a.dueDay - b.dueDay));
+      }
   };
   
   const deletePendingPayment = async (id: string) => {
-      if (!user || !db) return;
-      await deleteDoc(doc(db, 'users', user.uid, 'pendingPayments', id));
-      setPendingPayments(prev => prev.filter(p => p.id !== id));
+      if (user && db) {
+        await deleteDoc(doc(db, 'users', user.uid, 'pendingPayments', id));
+        setFbPendingPayments(prev => prev.filter(p => p.id !== id));
+      } else {
+        setLocalPendingPayments(prev => prev.filter(p => p.id !== id));
+      }
   };
 
 
   const processedBudgets = useMemo(() => {
-    return budgets.map(budget => {
+    const baseBudgets = isDemoMode 
+        ? localBudgets.map((b,i) => ({ ...b, id: `bud-${i}`})) 
+        : fbBudgets;
+
+    return baseBudgets.map(budget => {
       const currentMonth = format(new Date(), 'yyyy-MM');
       const spent = transactions
         .filter(t => t.category === budget.category && t.type === 'expense' && format(new Date(t.date), 'yyyy-MM') === currentMonth)
         .reduce((acc, t) => acc + Math.abs(t.amount), 0);
       return { ...budget, spent };
     });
-  }, [budgets, transactions]);
+  }, [isDemoMode, localBudgets, fbBudgets, transactions]);
   
   if (!isConfigured) return <FirebaseNotConfigured />;
   if (loading) return <GlobalLoader />;
