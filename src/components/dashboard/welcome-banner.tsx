@@ -24,6 +24,26 @@ const planckQuotes = [
   {
     quote: "Cuidado con los pequeños gastos; una pequeña fuga hundirá un gran barco. O masticará un gran sofá.",
     author: "- Planck el Bulldog, Guardián del Sofá"
+  },
+  {
+    quote: "La riqueza no es sobre tener mucho, sino sobre necesitar poco. Excepto siestas. De esas, necesito muchas.",
+    author: "- Planck el Bulldog, Minimalista Cómodo"
+  },
+  {
+    quote: "El momento perfecto para empezar a ahorrar fue ayer. El segundo mejor momento es ahora, justo después de tu paseo.",
+    author: "- Planck el Bulldog, Estratega Oportunista"
+  },
+  {
+    quote: "No pongas todos tus huevos en una sola canasta. Diversifica tus juguetes, tus camas y tus inversiones.",
+    author: "- Planck el Bulldog, Gestor de Activos Canino"
+  },
+  {
+    quote: "Una meta sin un plan es solo un deseo. Como desear que esa ardilla baje del árbol.",
+    author: "- Planck el Bulldog, Planificador Pragmático"
+  },
+  {
+    quote: "Tu patrimonio neto para el mundo puede no ser lo mismo que tu valor neto para tu perro. Pero un buen plan financiero ayuda.",
+    author: "- Planck el Bulldog, Economista Emocional"
   }
 ];
 
