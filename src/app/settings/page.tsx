@@ -31,6 +31,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAppData } from '@/context/app-data-context';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera } from 'lucide-react';
+import { ThemeSwitcher } from '@/components/settings/theme-switcher';
 
 const profileFormSchema = z.object({
   name: z.string().min(1, { message: "El nombre es obligatorio." }),
@@ -212,6 +213,17 @@ export default function SettingsPage() {
             </Card>
           </form>
         </Form>
+        <Card>
+          <CardHeader>
+            <CardTitle>Apariencia</CardTitle>
+            <CardDescription>
+              Personaliza el tema de color de la aplicación.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ThemeSwitcher />
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Notificaciones</CardTitle>
