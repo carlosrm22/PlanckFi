@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -50,6 +51,10 @@ export function AIBudgetAssistant() {
 
   const form = useForm<z.infer<typeof aiBudgetFormSchema>>({
     resolver: zodResolver(aiBudgetFormSchema),
+    defaultValues: {
+        monthlyIncome: '' as any,
+        financialGoals: '',
+    },
   });
 
   async function onSubmit(values: z.infer<typeof aiBudgetFormSchema>) {
@@ -162,7 +167,7 @@ export function AIBudgetAssistant() {
                     <FormItem>
                     <FormLabel>Ingreso Mensual Neto</FormLabel>
                     <FormControl>
-                        <Input type="number" placeholder="Ej: 2500" {...field} />
+                        <Input type="number" placeholder="Ej: 2500" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>

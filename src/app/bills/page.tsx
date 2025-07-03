@@ -44,9 +44,9 @@ export default function BillsPage() {
     } else {
       form.reset({
         name: "",
-        amount: undefined,
+        amount: '' as any,
         category: undefined,
-        dueDay: undefined,
+        dueDay: '' as any,
       });
     }
   }, [editingPendingPayment, form]);
@@ -116,14 +116,14 @@ export default function BillsPage() {
                    <FormField control={form.control} name="amount" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Monto Mensual</FormLabel>
-                      <FormControl><Input type="number" placeholder="15.99" {...field} /></FormControl>
+                      <FormControl><Input type="number" placeholder="15.99" {...field} value={field.value ?? ''} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="dueDay" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Día de Vencimiento</FormLabel>
-                      <FormControl><Input type="number" placeholder="Día del mes (1-31)" {...field} /></FormControl>
+                      <FormControl><Input type="number" placeholder="Día del mes (1-31)" {...field} value={field.value ?? ''} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -158,7 +159,7 @@ export default function TransactionsPage() {
     } else {
         form.reset({
             description: '',
-            amount: undefined,
+            amount: '' as any,
             date: new Date(),
             type: 'expense',
             category: '',
@@ -404,6 +405,7 @@ export default function TransactionsPage() {
                                 type="number"
                                 placeholder="$5.00"
                                 {...field}
+                                value={field.value ?? ''}
                                 />
                             </FormControl>
                             <FormMessage />

@@ -65,7 +65,8 @@ export default function BudgetsPage() {
   const budgetForm = useForm<z.infer<typeof budgetFormSchema>>({
     resolver: zodResolver(budgetFormSchema),
     defaultValues: {
-      amount: 0,
+      amount: '' as any,
+      category: undefined
     },
   });
 
@@ -211,6 +212,7 @@ export default function BudgetsPage() {
                                 type="number"
                                 placeholder="$500"
                                 {...field}
+                                value={field.value ?? ''}
                               />
                             </FormControl>
                             <FormMessage/>

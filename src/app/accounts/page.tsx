@@ -95,7 +95,7 @@ export default function AccountsPage() {
         name: "",
         type: undefined,
         provider: "",
-        balance: undefined,
+        balance: '' as any,
         lastFour: "",
       });
     }
@@ -214,7 +214,7 @@ export default function AccountsPage() {
                       <FormItem>
                         <FormLabel>Saldo Actual</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="1000.00" {...field} />
+                          <Input type="number" placeholder="1000.00" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
