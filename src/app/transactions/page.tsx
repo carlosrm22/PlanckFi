@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search, Plus, FileUp, Loader2 } from 'lucide-react';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search, Plus, FileUp, Loader2, FileDown, FileText } from 'lucide-react';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -346,6 +346,24 @@ export default function TransactionsPage() {
   
   const handleImportClick = () => {
     importFileInputRef.current?.click();
+  };
+  
+  const handleDownloadTemplate = () => {
+    const headers = 'Fecha,Descripción,Categoría,Tipo,Monto';
+    const exampleRows = [
+      '2024-07-26,Compra en supermercado,Comestibles,Gasto,85.40',
+      '2024-07-28,Salario,Ingresos,Ingreso,2000.00',
+      '2024-07-29,Suscripción a Spotify,Entretenimiento,Gasto,10.99'
+    ];
+    const csvContent = [headers, ...exampleRows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'plantilla_transacciones.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -747,34 +765,41 @@ export default function TransactionsPage() {
                     </Form>
                 </DialogContent>
                 </Dialog>
-                <Button variant="outline" onClick={handleImportClick} disabled={isImporting} className="w-full sm:w-auto">
-                  {isImporting ? (
-                      <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Importando...
-                      </>
-                  ) : (
-                      <>
-                          <FileUp className="mr-2 h-4 w-4" />
-                          Importar CSV
-                      </>
-                  )}
-                </Button>
-                <input
-                    type="file"
-                    ref={importFileInputRef}
-                    onChange={handleImportCSV}
-                    className="hidden"
-                    accept=".csv"
-                />
-                <Button variant="outline" onClick={handleExportCSV} className="w-full sm:w-auto">
-                    <FileSpreadsheet className="mr-2 h-4 w-4" />
-                    Exportar CSV
-                </Button>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full sm:w-auto">
+                    <Button variant="outline" onClick={handleImportClick} disabled={isImporting} className="w-full">
+                        {isImporting ? (
+                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Importando...</>
+                        ) : (
+                            <><FileUp className="mr-2 h-4 w-4" /> Importar</>
+                        )}
+                    </Button>
+                     <input
+                        type="file"
+                        ref={importFileInputRef}
+                        onChange={handleImportCSV}
+                        className="hidden"
+                        accept=".csv"
+                    />
+                    <Button variant="outline" onClick={handleDownloadTemplate} className="w-full">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Plantilla
+                    </Button>
+                    <Button variant="outline" onClick={handleExportCSV} className="w-full">
+                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                        Exportar
+                    </Button>
+                </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
+            <Alert className="mb-4">
+                <FileText className="h-4 w-4" />
+                <AlertTitle>¿Quieres importar transacciones?</AlertTitle>
+                <AlertDescription>
+                    Usa un archivo CSV con las columnas: Fecha, Descripción, Categoría, Tipo, Monto. Descarga nuestra plantilla para asegurar el formato correcto.
+                </AlertDescription>
+            </Alert>
           <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
             <div className="relative w-full sm:w-auto sm:flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
