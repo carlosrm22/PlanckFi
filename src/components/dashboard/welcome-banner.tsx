@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useAppData } from '@/context/app-data-context';
 
 const planckQuotes = [
   {
@@ -48,6 +49,7 @@ const planckQuotes = [
 ];
 
 export function WelcomeBanner() {
+  const { user } = useAppData();
   const [activeQuote, setActiveQuote] = useState(planckQuotes[0]);
 
   useEffect(() => {
@@ -56,11 +58,13 @@ export function WelcomeBanner() {
     setActiveQuote(planckQuotes[randomIndex]);
   }, []); // El array de dependencias vacío asegura que esto se ejecute una vez al montar
 
+  const welcomeTitle = user ? `¡Bienvenido de nuevo, ${user.displayName || 'Usuario'}!` : '¡Bienvenido de nuevo!';
+
   return (
     <Card className="flex flex-col md:flex-row items-stretch overflow-hidden">
       <div className="p-6 flex-1">
         <CardHeader className="p-0 pb-4">
-          <CardTitle className="text-3xl">¡Bienvenido de nuevo!</CardTitle>
+          <CardTitle className="text-3xl">{welcomeTitle}</CardTitle>
           <CardDescription>Aquí está Planck, ¡listo para ayudarte a organizar tus finanzas!</CardDescription>
         </CardHeader>
         <CardContent className="p-0">

@@ -63,14 +63,20 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={user.photoURL ?? undefined}
-              alt="Avatar de usuario"
-            />
-            <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-          </Avatar>
+        <Button variant="ghost" className="flex items-center gap-3 p-1 pr-2 h-auto rounded-lg focus-visible:ring-2 focus-visible:ring-ring">
+            <div className="hidden sm:flex flex-col items-end">
+                <p className="text-sm font-medium leading-none">{user.displayName || 'Usuario'}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                </p>
+            </div>
+            <Avatar className="h-9 w-9">
+                <AvatarImage
+                src={user.photoURL ?? undefined}
+                alt="Avatar de usuario"
+                />
+                <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+            </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
