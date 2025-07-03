@@ -11,7 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { categories as appCategories } from '@/lib/data';
+import { initialCategoriesData as appCategories } from '@/lib/data';
 
 // Dynamically create category list for prompt and schema description
 const expenseCategoriesList = appCategories
