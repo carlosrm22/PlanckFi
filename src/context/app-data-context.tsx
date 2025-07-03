@@ -9,7 +9,7 @@ import { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utens
 import type { Category, BudgetGoal, Transaction, Account, PendingPayment } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, isConfigured } from '@/lib/firebase';
-import { type User, onAuthStateChanged, signOut as firebaseSignOut, updateProfile } from 'firebase/auth';
+import { type User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import {
   collection,
   doc,
@@ -19,9 +19,18 @@ import {
   deleteDoc,
   query,
   orderBy,
-  writeBatch
+  writeBatch,
+  getDoc,
+  setDoc,
 } from 'firebase/firestore';
 import { initialCategoriesData } from '@/lib/data';
+
+// --- App User Type ---
+interface AppUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+}
 
 // --- Demo Data ---
 const iconMap = { ShoppingCart, Home, Clapperboard, Car, HeartPulse, Receipt, Plus, Utensils, Landmark, Tag };
@@ -46,9 +55,9 @@ const demoBudgets: Omit<BudgetGoal, 'id' | 'spent'>[] = [
 
 
 interface AppDataContextType {
-  user: User | null;
+  user: AppUser | null;
   signOut: () => void;
-  updateUserProfile: (profileData: { displayName?: string; }) => Promise<void>;
+  updateUserProfile: (profileData: { displayName: string; }) => Promise<void>;
   categories: Category[];
   addCategory: (name: string) => Promise<void>;
   editCategory: (id: string, newName: string) => Promise<void>;
@@ -110,7 +119,7 @@ function cleanDataForFirestore(data: any) {
 
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
@@ -132,12 +141,38 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // Auth Effect
   useEffect(() => {
-    if (!isConfigured || !auth) {
+    if (!isConfigured || !auth || !db) {
         setLoading(false);
         return;
     }
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: userData.name || '',
+            });
+        } else {
+            console.warn("User document not found in Firestore, creating one.");
+            const defaultName = firebaseUser.email?.split('@')[0] || 'Nuevo Usuario';
+            await setDoc(userDocRef, {
+                name: defaultName,
+                email: firebaseUser.email,
+            });
+             setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: defaultName,
+            });
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -186,15 +221,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserProfile = async (profileData: { displayName?: string }) => {
-    if (!auth?.currentUser) {
+  const updateUserProfile = async (profileData: { displayName: string }) => {
+    if (!user || !db) {
       throw new Error("Usuario no autenticado.");
     }
-    await updateProfile(auth.currentUser, profileData);
-    // Manually update the user object in state to reflect the change immediately
+    const userDocRef = doc(db, 'users', user.uid);
+    await updateDoc(userDocRef, { name: profileData.displayName });
     setUser(prevUser => {
         if (!prevUser) return null;
-        return { ...prevUser, ...profileData };
+        return { ...prevUser, displayName: profileData.displayName };
     });
   };
   

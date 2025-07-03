@@ -45,6 +45,15 @@ export default function RegisterPage() {
             const user = userCredential.user;
 
             const batch = writeBatch(db);
+
+            // Create user document in 'users' collection
+            const userDocRef = doc(db, 'users', user.uid);
+            batch.set(userDocRef, {
+                email: user.email,
+                name: user.email?.split('@')[0] || 'Nuevo Usuario'
+            });
+
+            // Create initial categories for the user
             const categoriesCol = collection(db, 'users', user.uid, 'categories');
             initialCategoriesData.forEach(category => {
                 const docRef = doc(categoriesCol); 
