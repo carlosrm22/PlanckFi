@@ -4,12 +4,13 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import type { Category, BudgetGoal, Transaction, Account } from '@/lib/types';
+import type { Category, BudgetGoal, Transaction, Account, Bill } from '@/lib/types';
 import {
   categories as initialCategories,
   budgetGoals as initialBudgetGoals,
   transactions as initialTransactions,
   accounts as initialAccounts,
+  bills as initialBills,
 } from '@/lib/data';
 import { Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +29,10 @@ interface AppDataContextType {
   addAccount: (account: Omit<Account, 'id'>) => void;
   editAccount: (id: string, updatedAccount: Omit<Account, 'id'>) => void;
   deleteAccount: (id: string) => void;
+  bills: Bill[];
+  addBill: (bill: Omit<Bill, 'id'>) => void;
+  editBill: (id: string, updatedBill: Omit<Bill, 'id'>) => void;
+  deleteBill: (id: string) => void;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -38,6 +43,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] =
     useState<Transaction[]>(initialTransactions);
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
+  const [bills, setBills] = useState<Bill[]>(initialBills);
   const { toast } = useToast();
 
   const processedBudgets = useMemo(() => {
@@ -179,6 +185,35 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addBill = (bill: Omit<Bill, 'id'>) => {
+    const newBill: Bill = {
+      ...bill,
+      id: new Date().getTime().toString(),
+    };
+    setBills(prev => [...prev, newBill].sort((a, b) => a.dueDay - b.dueDay));
+    toast({
+      title: 'Éxito',
+      description: 'Factura recurrente añadida correctamente.',
+    });
+  };
+
+  const editBill = (id: string, updatedBill: Omit<Bill, 'id'>) => {
+    setBills(prev => prev.map(b => b.id === id ? { id, ...updatedBill } : b).sort((a, b) => a.dueDay - b.dueDay));
+    toast({
+      title: 'Éxito',
+      description: 'Factura recurrente actualizada correctamente.',
+    });
+  };
+
+  const deleteBill = (id: string) => {
+    setBills(prev => prev.filter(b => b.id !== id));
+    toast({
+      title: 'Éxito',
+      description: 'Factura recurrente eliminada correctamente.',
+    });
+  };
+
+
   const value = {
     categories,
     addCategory,
@@ -193,6 +228,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     addAccount,
     editAccount,
     deleteAccount,
+    bills,
+    addBill,
+    editBill,
+    deleteBill,
   };
 
   return (

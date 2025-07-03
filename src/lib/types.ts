@@ -25,10 +25,11 @@ export interface BudgetGoal {
 }
 
 export interface Bill {
+  id: string;
   name: string;
   amount: number;
-  dueDate: string;
-  icon: LucideIcon;
+  dueDay: number;
+  category: string;
 }
 
 export interface Account {

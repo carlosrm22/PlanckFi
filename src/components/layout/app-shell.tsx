@@ -24,6 +24,7 @@ import {
   Search,
   Tag,
   ScanLine,
+  CalendarClock,
 } from "lucide-react";
 import { Logo } from "@/components/icons";
 import { UserNav } from "@/components/user-nav";
@@ -34,6 +35,7 @@ const navItems = [
   { href: "/transactions", label: "Transacciones", icon: ArrowRightLeft },
   { href: "/accounts", label: "Cuentas", icon: Wallet },
   { href: "/budgets", label: "Presupuestos", icon: Goal },
+  { href: "/bills", label: "Facturas", icon: CalendarClock },
   { href: "/categories", label: "Categorías", icon: Tag },
   { href: "/scan-receipt", label: "Escanear Recibo", icon: ScanLine },
 ];

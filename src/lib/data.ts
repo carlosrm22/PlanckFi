@@ -35,11 +35,11 @@ export const budgetGoals: BudgetGoal[] = [
   { category: "Salud", icon: HeartPulse, budgeted: 200, spent: 210, color: "var(--chart-4)" },
 ];
 
-export const upcomingBills: Bill[] = [
-    { name: "Netflix", amount: 15.99, dueDate: "2024-08-25T12:00:00Z", icon: Clapperboard },
-    { name: "Factura de Electricidad", amount: 75.50, dueDate: "2024-08-28T12:00:00Z", icon: Receipt },
-    { name: "Alquiler", amount: 1200, dueDate: "2024-09-01T12:00:00Z", icon: Home },
-    { name: "Seguro de Auto", amount: 120.00, dueDate: "2024-09-05T12:00:00Z", icon: Car },
+export const bills: Bill[] = [
+    { id: 'b1', name: "Netflix", amount: 15.99, dueDay: 25, category: "Entretenimiento" },
+    { id: 'b2', name: "Factura de Electricidad", amount: 75.50, dueDay: 28, category: "Servicios" },
+    { id: 'b3', name: "Alquiler", amount: 1200, dueDay: 1, category: "Alquiler" },
+    { id: 'b4', name: "Seguro de Auto", amount: 120.00, dueDay: 5, category: "Transporte" },
 ]
 
 export const spendingData = [
