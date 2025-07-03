@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search } from 'lucide-react';
+import { CalendarIcon, PlusCircle, MoreHorizontal, Pencil, Trash2, Paperclip, Camera, Upload, XCircle, AlertCircle, FileSpreadsheet, Search, Plus } from 'lucide-react';
 
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
@@ -94,6 +94,13 @@ const transactionFormSchema = z.object({
   receiptImageUrl: z.string().optional(),
 });
 
+const categoryFormSchema = z.object({
+  name: z.string().min(2, {
+    message: "El nombre debe tener al menos 2 caracteres.",
+  }),
+});
+
+
 export default function TransactionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -101,6 +108,7 @@ export default function TransactionsPage() {
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('all');
@@ -110,10 +118,17 @@ export default function TransactionsPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { transactions, categories, addTransaction, editTransaction, deleteTransaction } = useAppData();
+  const { transactions, categories, addTransaction, editTransaction, deleteTransaction, addCategory } = useAppData();
 
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
+  });
+
+  const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
+    resolver: zodResolver(categoryFormSchema),
+    defaultValues: {
+      name: "",
+    },
   });
   
   const filteredTransactions = useMemo(() => {
@@ -238,6 +253,13 @@ export default function TransactionsPage() {
     
     setDialogOpen(false);
     setEditingTransaction(null);
+  }
+
+  function onCategorySubmit(values: z.infer<typeof categoryFormSchema>) {
+    addCategory(values.name);
+    form.setValue("category", values.name);
+    setCategoryDialogOpen(false);
+    categoryForm.reset();
   }
   
   const openEditDialog = (transaction: Transaction) => {
@@ -414,36 +436,84 @@ export default function TransactionsPage() {
                         />
                         
                         {transactionType === 'expense' ? (
-                        <FormField
-                            control={form.control}
-                            name="category"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Categoría</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                >
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona una categoría" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {expenseCategories.map((category) => (
-                                        <SelectItem
-                                        key={category.name}
-                                        value={category.name}
-                                        >
-                                        {category.name}
-                                        </SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
+                          <>
+                            {expenseCategories.length === 0 && !isDemoMode && (
+                                <Alert>
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>No tienes categorías de gastos</AlertTitle>
+                                    <AlertDescription>
+                                        Por favor, crea una nueva categoría para poder registrar tu gasto.
+                                    </AlertDescription>
+                                </Alert>
                             )}
-                        />
+                            <FormField
+                                control={form.control}
+                                name="category"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Categoría</FormLabel>
+                                    <div className="flex items-center gap-2">
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value}
+                                            disabled={expenseCategories.length === 0}
+                                        >
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona una categoría" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                            {expenseCategories.map((category) => (
+                                                <SelectItem
+                                                key={category.id}
+                                                value={category.name}
+                                                >
+                                                {category.name}
+                                                </SelectItem>
+                                            ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="icon" className="shrink-0">
+                                                    <Plus className="h-4 w-4" />
+                                                    <span className="sr-only">Añadir nueva categoría</span>
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Añadir Nueva Categoría</DialogTitle>
+                                                    <DialogDescription>Crea una nueva categoría para seguir tus gastos.</DialogDescription>
+                                                </DialogHeader>
+                                                <Form {...categoryForm}>
+                                                    <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4 pt-4">
+                                                        <FormField
+                                                            control={categoryForm.control}
+                                                            name="name"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Nombre de la Categoría</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input placeholder="Ej. Viajes" {...field} />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <DialogFooter>
+                                                            <Button type="submit">Guardar categoría</Button>
+                                                        </DialogFooter>
+                                                    </form>
+                                                </Form>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                          </>
                         ) : (
                         <FormField
                             control={form.control}
@@ -706,7 +776,7 @@ export default function TransactionsPage() {
                     <AlertTitle>Error de Permisos</AlertTitle>
                     <AlertDescription>
                         Por favor, permite el acceso a la cámara en tu navegador para usar esta función.
-                    </AlertDescription>
+                    </Description>
                 </Alert>
             )}
             <DialogFooter>
